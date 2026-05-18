@@ -1,0 +1,35 @@
+{
+  "name": "obsidian-tasks-panel",
+  "version": "0.1.0",
+  "description": "Aggregates tasks from vault notes into a sidebar panel",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc --noEmit -p tsconfig.json && node esbuild.config.mjs production",
+    "test": "jest --passWithNoTests"
+  },
+  "overrides": {
+    "semver": "7.7.4",
+    "node-releases": "2.0.38",
+    "electron-to-chromium": "1.5.352",
+    "baseline-browser-mapping": "2.10.27",
+    "builtin-modules": "5.1.0",
+    "@types/node": "25.6.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "25.6.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "builtin-modules": "5.1.0",
+    "esbuild": "^0.28.0",
+    "jest": "^29.7.0",
+    "obsidian": "latest",
+    "ts-jest": "^29.4.9",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  }
+}

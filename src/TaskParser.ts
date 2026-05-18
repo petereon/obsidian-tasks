@@ -1,0 +1,73 @@
+import type { ListItemCache } from "obsidian";
+import type { Task } from "./types";
+
+const DUE_REGEX = /\[due::\s*(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2}))?\]/;
+const DONE_REGEX = /\[done::\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\]/;
+
+export function parseTasksFromFile(
+  filePath: string,
+  content: string,
+  listItems: ListItemCache[]
+): Task[] {
+  const lines = content.split("\n");
+  const fileName = filePath.split("/").pop()?.replace(/\.md$/, "") ?? filePath;
+  const tasks: Task[] = [];
+
+  for (const item of listItems) {
+    if (item.task === undefined) continue;
+
+    const lineNumber = item.position.start.line;
+    const lineText = lines[lineNumber];
+    if (!lineText) continue;
+
+    const textMatch = lineText.match(/^\s*- \[.\]\s*(.*)/);
+    if (!textMatch) continue;
+
+    const rawText = textMatch[1];
+    const { due, hasTime } = parseDue(rawText);
+    const completedAt = parseDone(rawText);
+    const text = rawText
+      .replace(DUE_REGEX, "")
+      .replace(DONE_REGEX, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    tasks.push({
+      id: `${filePath}::${lineNumber}`,
+      text,
+      due,
+      hasTime,
+      completed: item.task !== " ",
+      completedAt,
+      filePath,
+      fileName,
+      line: lineNumber,
+    });
+  }
+
+  return tasks;
+}
+
+function parseDone(text: string): Date | undefined {
+  const match = text.match(DONE_REGEX);
+  if (!match) return undefined;
+  const [, dateStr, timeStr] = match;
+  const [year, month, day] = (dateStr as string).split("-").map(Number);
+  const [hours, minutes] = (timeStr as string).split(":").map(Number);
+  return new Date(year, month - 1, day, hours, minutes, 0);
+}
+
+function parseDue(text: string): { due: Date | null; hasTime: boolean } {
+  const match = text.match(DUE_REGEX);
+  if (!match) return { due: null, hasTime: false };
+
+  const [, dateStr, timeStr] = match;
+  const [year, month, day] = (dateStr as string).split("-").map(Number);
+
+  if (timeStr) {
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    return { due: new Date(year, month - 1, day, hours, minutes, 0), hasTime: true };
+  }
+
+  return { due: new Date(year, month - 1, day, 0, 0, 0), hasTime: false };
+}
