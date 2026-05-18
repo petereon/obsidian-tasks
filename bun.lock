@@ -16,7 +16,7 @@
         "builtin-modules": "5.1.0",
         "esbuild": "^0.28.0",
         "jest": "^29.7.0",
-        "obsidian": "latest",
+        "obsidian": "^1.12.3",
         "ts-jest": "^29.4.9",
         "typescript": "^6.0.3",
       },
