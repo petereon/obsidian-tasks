@@ -1,4 +1,4 @@
-import { parseTasksFromFile } from "../src/TaskParser";
+import { parseTasksFromFile, shouldExcludeFile } from "../src/TaskParser";
 import type { ListItemCache } from "obsidian";
 
 function makeListItem(line: number, taskChar?: string): ListItemCache {
@@ -115,5 +115,37 @@ describe("parseTasksFromFile", () => {
     const items = [makeListItem(0, " ")];
     const tasks = parseTasksFromFile("note.md", content, items);
     expect(tasks[0].completedAt).toBeUndefined();
+  });
+
+  it("excludes a task marked [no-collect]", () => {
+    const content = "- [ ] Secret task [no-collect]";
+    const items = [makeListItem(0, " ")];
+    expect(parseTasksFromFile("note.md", content, items)).toHaveLength(0);
+  });
+
+  it("still collects other tasks in the same file", () => {
+    const content = "- [ ] Secret task [no-collect]\n- [ ] Visible task";
+    const items = [makeListItem(0, " "), makeListItem(1, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].text).toBe("Visible task");
+  });
+});
+
+describe("shouldExcludeFile", () => {
+  it("returns false when there is no frontmatter", () => {
+    expect(shouldExcludeFile(undefined)).toBe(false);
+  });
+
+  it("returns false when frontmatter has no tasks-no-collect property", () => {
+    expect(shouldExcludeFile({ title: "Note" })).toBe(false);
+  });
+
+  it("returns true when frontmatter has tasks-no-collect: true", () => {
+    expect(shouldExcludeFile({ "tasks-no-collect": true })).toBe(true);
+  });
+
+  it("returns false when tasks-no-collect is explicitly false", () => {
+    expect(shouldExcludeFile({ "tasks-no-collect": false })).toBe(false);
   });
 });

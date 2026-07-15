@@ -3,6 +3,11 @@ import type { Task } from "./types";
 
 const DUE_REGEX = /\[due::\s*(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2}))?\]/;
 const DONE_REGEX = /\[done::\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\]/;
+const NO_COLLECT_REGEX = /\[no-collect\]/;
+
+export function shouldExcludeFile(frontmatter: Record<string, unknown> | undefined): boolean {
+  return frontmatter?.["tasks-no-collect"] === true;
+}
 
 export function parseTasksFromFile(
   filePath: string,
@@ -24,6 +29,8 @@ export function parseTasksFromFile(
     if (!textMatch) continue;
 
     const rawText = textMatch[1];
+    if (NO_COLLECT_REGEX.test(rawText)) continue;
+
     const { due, hasTime } = parseDue(rawText);
     const completedAt = parseDone(rawText);
     const text = rawText

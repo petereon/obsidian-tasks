@@ -1,5 +1,5 @@
 import { Plugin, TFile } from "obsidian";
-import { parseTasksFromFile } from "./src/TaskParser";
+import { parseTasksFromFile, shouldExcludeFile } from "./src/TaskParser";
 import { TaskStore } from "./src/TaskStore";
 import { toggleTask } from "./src/TaskToggler";
 import { TASK_PANEL_VIEW_TYPE, TaskPanelView } from "./src/views/TaskPanelView";
@@ -153,7 +153,10 @@ export default class ObsidianTasksPlugin extends Plugin {
 
   private async parseFile(file: TFile): Promise<void> {
     const cache = this.app.metadataCache.getFileCache(file);
-    if (!cache?.listItems?.some((item) => item.task !== undefined)) {
+    if (
+      shouldExcludeFile(cache?.frontmatter) ||
+      !cache?.listItems?.some((item) => item.task !== undefined)
+    ) {
       this.store.removeFile(file.path);
       return;
     }
