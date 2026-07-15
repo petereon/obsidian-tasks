@@ -4,6 +4,27 @@ import type { Task } from "../types";
 import { formatDue } from "../formatDue";
 import { useApp } from "./AppContext";
 
+function LinkIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ display: "block", flexShrink: 0 }}
+    >
+      <path d="M9 17H7A5 5 0 0 1 7 7h2" />
+      <path d="M15 7h2a5 5 0 1 1 0 10h-2" />
+      <line x1="8" y1="12" x2="16" y2="12" />
+    </svg>
+  );
+}
+
 interface Props {
   task: Task;
   completed?: boolean;
@@ -40,9 +61,16 @@ export function TaskItem({ task, completed = false, onToggle }: Props) {
       <span className="tasks-item__meta">
         {doneLabel && <span className="tasks-item__done">{doneLabel}</span>}
         {!doneLabel && dueLabel && <span className="tasks-item__due">{dueLabel}</span>}
-        <span className="tasks-item__file" onClick={openFile} role="button" tabIndex={0}>
-          {task.fileName}
-        </span>
+      </span>
+      <span
+        className="tasks-item__file"
+        onClick={openFile}
+        role="button"
+        tabIndex={0}
+        title={task.fileName}
+      >
+        <LinkIcon />
+        <span className="tasks-item__file-name">{task.fileName}</span>
       </span>
     </div>
   );

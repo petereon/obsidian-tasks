@@ -161,9 +161,21 @@
 }
 
 .tasks-item__file {
+  display: flex;
+  align-items: center;
+  gap: 3px;
   color: var(--text-faint);
   cursor: pointer;
+  font-size: 11px;
+  max-width: 33%;
+  min-width: 0;
+}
+
+.tasks-item__file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .tasks-item__file:hover {
