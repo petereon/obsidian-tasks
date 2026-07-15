@@ -42,7 +42,7 @@ Set or update a due date on the current task line with **Ctrl/Cmd+P → "Set due
 
 ### Excluding a task
 
-Add `[no-collect]` to a task line to keep it off the panel entirely — useful for checklist items in templates or example checkboxes that aren't real tasks. The task stays untouched in the file; it's just skipped during the scan.
+Add `[tasks-no-collect:: true]` to a task line to keep it off the panel entirely — useful for checklist items in templates or example checkboxes that aren't real tasks. The task stays untouched in the file; it's just skipped during the scan. Use `[tasks-no-collect:: false]` to explicitly keep a task collected.
 
 To exclude every task in a note, add `tasks-no-collect: true` to its frontmatter instead:
 

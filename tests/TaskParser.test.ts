@@ -117,17 +117,31 @@ describe("parseTasksFromFile", () => {
     expect(tasks[0].completedAt).toBeUndefined();
   });
 
-  it("excludes a task marked [no-collect]", () => {
-    const content = "- [ ] Secret task [no-collect]";
+  it("excludes a task marked [tasks-no-collect:: true]", () => {
+    const content = "- [ ] Secret task [tasks-no-collect:: true]";
     const items = [makeListItem(0, " ")];
     expect(parseTasksFromFile("note.md", content, items)).toHaveLength(0);
   });
 
   it("still collects other tasks in the same file", () => {
-    const content = "- [ ] Secret task [no-collect]\n- [ ] Visible task";
+    const content = "- [ ] Secret task [tasks-no-collect:: true]\n- [ ] Visible task";
     const items = [makeListItem(0, " "), makeListItem(1, " ")];
     const tasks = parseTasksFromFile("note.md", content, items);
     expect(tasks).toHaveLength(1);
+    expect(tasks[0].text).toBe("Visible task");
+  });
+
+  it("collects a task marked [tasks-no-collect:: false]", () => {
+    const content = "- [ ] Visible task [tasks-no-collect:: false]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks).toHaveLength(1);
+  });
+
+  it("strips the tasks-no-collect annotation from displayed text", () => {
+    const content = "- [ ] Visible task [tasks-no-collect:: false]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
     expect(tasks[0].text).toBe("Visible task");
   });
 
