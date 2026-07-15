@@ -14,6 +14,24 @@ interface Props {
   onRefresh: () => Promise<void>;
 }
 
+// A task's id is added here optimistically the moment it's checked off in the
+// panel, before the file write + reparse round-trip lands a real `completedAt`.
+// Once that real data arrives (or the task is unchecked / disappears), the id
+// must be released — otherwise it stays flagged "completed today" forever,
+// since it force-includes the task in completedTodayTasks regardless of date.
+export function pruneCompletedToday(ids: Set<string>, tasks: Task[]): Set<string> {
+  if (ids.size === 0) return ids;
+  const taskById = new Map(tasks.map((t) => [t.id, t]));
+  const next = new Set(ids);
+  for (const id of ids) {
+    const t = taskById.get(id);
+    if (!t || !t.completed || t.completedAt !== undefined) {
+      next.delete(id);
+    }
+  }
+  return next.size === ids.size ? ids : next;
+}
+
 function isCompletedToday(date: Date | undefined): boolean {
   if (!date) return false;
   const now = new Date();
@@ -34,19 +52,19 @@ export function TaskPanel({ store, onRefresh }: Props) {
     return store.subscribe(() => {
       const newTasks = store.getAllTasks();
       setTasks(newTasks);
-      // When editor unchecks a task, remove it from the local completed set
-      setCompletedTodayIds((prev) => {
-        if (prev.size === 0) return prev;
-        const taskById = new Map(newTasks.map((t) => [t.id, t]));
-        const next = new Set(prev);
-        for (const id of prev) {
-          const t = taskById.get(id);
-          if (t && !t.completed) next.delete(id);
-        }
-        return next.size === prev.size ? prev : next;
-      });
+      setCompletedTodayIds((prev) => pruneCompletedToday(prev, newTasks));
     });
   }, [store]);
+
+  // Date-based groupings (Completed Today, Overdue/Today/Upcoming) are derived
+  // from the current time at render. Without vault activity there's otherwise
+  // no re-render to pick up a day boundary being crossed, so tasks can appear
+  // stuck in "Completed Today" indefinitely while the app sits idle overnight.
+  const [, forceRefresh] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => forceRefresh((n) => n + 1), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   async function handleToggle(task: Task): Promise<void> {
     // Task is "completing" unless it's already marked complete via file or optimistic state

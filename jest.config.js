@@ -8,5 +8,5 @@ module.exports = {
   moduleNameMapper: {
     "^obsidian$": "<rootDir>/tests/__mocks__/obsidian.ts",
   },
-  testMatch: ["**/tests/**/*.test.ts"],
+  testMatch: ["**/tests/**/*.test.ts", "**/tests/**/*.test.tsx"],
 };
