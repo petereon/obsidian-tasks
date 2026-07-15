@@ -130,6 +130,34 @@ describe("parseTasksFromFile", () => {
     expect(tasks).toHaveLength(1);
     expect(tasks[0].text).toBe("Visible task");
   });
+
+  it("renders only the alias for a piped wikilink", () => {
+    const content = "- [ ] Review [[Project Plan|the plan]]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].text).toBe("Review the plan");
+  });
+
+  it("renders the page name for a bare wikilink", () => {
+    const content = "- [ ] Check [[Meeting Notes]]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].text).toBe("Check Meeting Notes");
+  });
+
+  it("drops the heading ref from a wikilink with no alias", () => {
+    const content = "- [ ] See [[Notes#Section]]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].text).toBe("See Notes");
+  });
+
+  it("renders only the caption for a markdown link", () => {
+    const content = "- [ ] Visit [External](https://example.com)";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].text).toBe("Visit External");
+  });
 });
 
 describe("shouldExcludeFile", () => {

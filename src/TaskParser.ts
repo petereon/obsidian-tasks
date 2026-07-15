@@ -4,6 +4,13 @@ import type { Task } from "./types";
 const DUE_REGEX = /\[due::\s*(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2}))?\]/;
 const DONE_REGEX = /\[done::\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\]/;
 const NO_COLLECT_REGEX = /\[no-collect\]/;
+const WIKILINK_REGEX = /\[\[([^\]]+)\]\]/g;
+const MARKDOWN_LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
+
+function wikilinkCaption(_match: string, inner: string): string {
+  const [target, alias] = inner.split("|");
+  return (alias ?? target.split("#")[0]).trim();
+}
 
 export function shouldExcludeFile(frontmatter: Record<string, unknown> | undefined): boolean {
   return frontmatter?.["tasks-no-collect"] === true;
@@ -36,6 +43,8 @@ export function parseTasksFromFile(
     const text = rawText
       .replace(DUE_REGEX, "")
       .replace(DONE_REGEX, "")
+      .replace(WIKILINK_REGEX, wikilinkCaption)
+      .replace(MARKDOWN_LINK_REGEX, "$1")
       .replace(/\s+/g, " ")
       .trim();
 
