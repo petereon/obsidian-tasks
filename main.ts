@@ -5,6 +5,7 @@ import { advanceRecurringTask, toggleTask } from "./src/TaskToggler";
 import { DUE_REGEX, formatDueAnnotation } from "./src/dueDate";
 import { nextOccurrence } from "./src/Recurrence";
 import { formatDue } from "./src/formatDue";
+import { matchesAnyPattern } from "./src/globMatch";
 import { TASK_PANEL_VIEW_TYPE, TaskPanelView } from "./src/views/TaskPanelView";
 import { DueDateModal } from "./src/modals/DueDateModal";
 import { Notifier } from "./src/Notifier";
@@ -128,7 +129,7 @@ export default class ObsidianTasksPlugin extends Plugin {
     this.debounceTimers.clear();
   }
 
-  private async initialScan(): Promise<void> {
+  async initialScan(): Promise<void> {
     const files = this.app.vault.getMarkdownFiles();
     await Promise.all(files.map((file) => this.parseFile(file)));
   }
@@ -147,6 +148,7 @@ export default class ObsidianTasksPlugin extends Plugin {
     const cache = this.app.metadataCache.getFileCache(file);
     if (
       shouldExcludeFile(cache?.frontmatter) ||
+      matchesAnyPattern(file.path, this.settings.ignorePatterns) ||
       !cache?.listItems?.some((item) => item.task !== undefined)
     ) {
       this.store.removeFile(file.path);

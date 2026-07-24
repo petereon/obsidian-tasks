@@ -4,6 +4,7 @@ import type { PluginSettings } from "./settings";
 interface PluginHost {
   settings: PluginSettings;
   saveSettings(): Promise<void>;
+  initialScan(): Promise<void>;
 }
 
 export class TasksSettingsTab extends PluginSettingTab {
@@ -34,5 +35,28 @@ export class TasksSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
+
+    new Setting(containerEl)
+      .setName("Ignored files and folders")
+      .setDesc(
+        "One glob pattern per line. Use ** to match a whole folder " +
+        "(e.g. Templates/**), * to match within a single path segment. " +
+        "A bare folder name like \"Templates\" only matches a file with " +
+        "that exact name — write \"Templates/**\" to exclude everything inside it.",
+      )
+      .addTextArea((textarea) => {
+        textarea.inputEl.rows = 5;
+        textarea
+          .setPlaceholder("Templates/**\nArchive/**/*.md\nInbox/scratch.md")
+          .setValue(this.plugin.settings.ignorePatterns.join("\n"))
+          .onChange(async (value) => {
+            this.plugin.settings.ignorePatterns = value
+              .split("\n")
+              .map((line) => line.trim())
+              .filter((line) => line.length > 0);
+            await this.plugin.saveSettings();
+            await this.plugin.initialScan();
+          });
+      });
   }
 }

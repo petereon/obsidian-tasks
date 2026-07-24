@@ -69,6 +69,18 @@ tasks-no-collect: true
 ---
 ```
 
+### Ignoring files and folders
+
+For excluding whole folders (like `Templates/`) without editing every note inside them, configure glob patterns under **Settings → Tasks Panel → Ignored files and folders** — one pattern per line:
+
+| Pattern | Meaning |
+|---|---|
+| `Templates/**` | Everything under the Templates folder |
+| `Archive/**/*.md` | Every markdown file anywhere under Archive |
+| `Inbox/scratch.md` | One specific file |
+
+`*` matches within a single path segment, `**` matches across segments (including zero). These are real globs, not gitignore shorthand — a bare `Templates` pattern only matches a file literally named `Templates`, not files inside the folder; use `Templates/**` for that. Changes take effect immediately on save, no reload needed.
+
 ### Notifications
 
 Only tasks with a specific time trigger notifications. Configure the lead time in **Settings → Tasks Panel → Notification threshold** (default: 15 minutes). Click a notification to jump to the task.

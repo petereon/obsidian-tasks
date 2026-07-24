@@ -1,7 +1,7 @@
 {
   "id": "obsidian-tasks-panel",
   "name": "Tasks Panel",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "minAppVersion": "1.4.0",
   "description": "Aggregates tasks from all vault notes into a sidebar panel with due date support.",
   "author": "Peter Vyboch",
