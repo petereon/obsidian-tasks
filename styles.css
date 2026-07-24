@@ -190,6 +190,43 @@
   text-decoration: underline;
 }
 
+/* ── Quick add ─────────────────────────────────────────────────── */
+
+.qa-modal {
+  width: 420px !important;
+  max-width: 92vw !important;
+}
+
+.qa {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+.qa__input {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: var(--radius-s, 4px);
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: var(--font-ui-small, 13px);
+}
+
+.qa__submit {
+  padding: 6px 14px;
+  border-radius: var(--radius-s, 4px);
+  border: none;
+  cursor: pointer;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-size: var(--font-ui-small, 13px);
+}
+
+.qa__submit:hover {
+  background: var(--interactive-accent-hover, var(--interactive-accent));
+}
+
 /* ── Date-time picker ─────────────────────────────────────────── */
 
 .dtp-modal {

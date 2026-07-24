@@ -58,5 +58,21 @@ export class TasksSettingsTab extends PluginSettingTab {
             await this.plugin.initialScan();
           });
       });
+
+    new Setting(containerEl)
+      .setName("Quick-add inbox note")
+      .setDesc(
+        "Vault-relative path (including .md) that \"Quick add task\" appends new tasks to. " +
+        "Created automatically if it doesn't exist yet.",
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Inbox.md")
+          .setValue(this.plugin.settings.quickAddInboxPath)
+          .onChange(async (value) => {
+            this.plugin.settings.quickAddInboxPath = value.trim();
+            await this.plugin.saveSettings();
+          }),
+      );
   }
 }

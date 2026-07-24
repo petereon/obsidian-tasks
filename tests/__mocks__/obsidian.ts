@@ -34,6 +34,7 @@ export interface Vault {
   read(file: TFile): Promise<string>;
   process(file: TFile, fn: (content: string) => string): Promise<string>;
   getAbstractFileByPath(path: string): TAbstractFile | null;
+  create(path: string, data: string): Promise<TFile>;
   on(event: string, cb: (...args: unknown[]) => unknown): EventRef;
 }
 

@@ -8,6 +8,8 @@ import { formatDue } from "./src/formatDue";
 import { matchesAnyPattern } from "./src/globMatch";
 import { TASK_PANEL_VIEW_TYPE, TaskPanelView } from "./src/views/TaskPanelView";
 import { DueDateModal } from "./src/modals/DueDateModal";
+import { QuickAddModal } from "./src/modals/QuickAddModal";
+import { addQuickTask } from "./src/QuickAdd";
 import { Notifier } from "./src/Notifier";
 import { TasksSettingsTab } from "./src/SettingsTab";
 import { DEFAULT_SETTINGS, type PluginSettings } from "./src/settings";
@@ -88,6 +90,22 @@ export default class ObsidianTasksPlugin extends Plugin {
             updated = `${updated} ${formatDueAnnotation(date, hasTime)}`;
           }
           editor.setLine(line, updated);
+        }).open();
+      },
+    });
+
+    this.addCommand({
+      id: "quick-add-task",
+      name: "Quick add task",
+      callback: () => {
+        if (!this.settings.quickAddInboxPath) {
+          new Notice("Set a quick-add inbox note in Tasks Panel settings first.");
+          return;
+        }
+
+        new QuickAddModal(this.app, async (text) => {
+          await addQuickTask(this.app.vault, this.settings.quickAddInboxPath, text);
+          new Notice(`Added to ${this.settings.quickAddInboxPath}`);
         }).open();
       },
     });

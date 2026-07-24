@@ -83,6 +83,10 @@ For excluding whole folders (like `Templates/`) without editing every note insid
 
 `*` matches within a single path segment, `**` matches across segments (including zero). These are real globs, not gitignore shorthand — a bare `Templates` pattern only matches a file literally named `Templates`, not files inside the folder; use `Templates/**` for that. Changes take effect immediately on save, no reload needed.
 
+### Quick-add
+
+Capture a task from anywhere in Obsidian — no need to have its note open — via **Ctrl/Cmd+P → "Quick add task"**. It appends `- [ ] <text>` to a single inbox note you configure once under **Settings → Tasks Panel → Quick-add inbox note** (created automatically if it doesn't exist yet). Add a due date or other annotations afterward the normal way.
+
 ### Notifications
 
 Only tasks with a specific time trigger notifications. Configure the lead time in **Settings → Tasks Panel → Notification threshold** (default: 15 minutes). Click a notification to jump to the task.
