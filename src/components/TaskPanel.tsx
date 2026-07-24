@@ -35,6 +35,15 @@ export function pruneCompletedToday(ids: Set<string>, tasks: Task[]): Set<string
   return next.size === ids.size ? ids : next;
 }
 
+export function matchesSearch(task: Task, query: string): boolean {
+  const trimmed = query.trim().toLowerCase();
+  if (trimmed.length === 0) return true;
+  return (
+    task.text.toLowerCase().includes(trimmed) ||
+    task.fileName.toLowerCase().includes(trimmed)
+  );
+}
+
 function isCompletedToday(date: Date | undefined): boolean {
   if (!date) return false;
   const now = new Date();
@@ -50,6 +59,7 @@ export function TaskPanel({ store, onRefresh }: Props) {
   const [tasks, setTasks] = useState<Task[]>(() => store.getAllTasks());
   const [mode, setMode] = useState<ViewMode>("grouped");
   const [completedTodayIds, setCompletedTodayIds] = useState<Set<string>>(new Set());
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     return store.subscribe(() => {
@@ -94,15 +104,17 @@ export function TaskPanel({ store, onRefresh }: Props) {
     await toggleTask(app.vault, file, task.line, completing);
   }
 
+  const visibleTasks = tasks.filter((t) => matchesSearch(t, query));
+
   // Active = not yet completed in file AND not optimistically completed
-  const activeTasks = tasks.filter(
+  const activeTasks = visibleTasks.filter(
     (t) => !t.completed && !completedTodayIds.has(t.id) && !isCompletedToday(t.completedAt)
   );
   // Completed Today = has [done:: today] annotation OR optimistically completed this session
-  const completedTodayTasks = tasks.filter(
+  const completedTodayTasks = visibleTasks.filter(
     (t) => isCompletedToday(t.completedAt) || completedTodayIds.has(t.id)
   );
-  const allCompletedTasks = tasks.filter((t) => t.completed && t.completedAt !== undefined);
+  const allCompletedTasks = visibleTasks.filter((t) => t.completed && t.completedAt !== undefined);
 
   return (
     <div className="tasks-panel">
@@ -131,6 +143,15 @@ export function TaskPanel({ store, onRefresh }: Props) {
             ↻
           </button>
         </div>
+      </div>
+      <div className="tasks-panel__search">
+        <input
+          type="search"
+          className="tasks-panel__search-input"
+          placeholder="Search tasks..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
       </div>
       <div className="tasks-panel__body">
         {mode === "grouped" && (

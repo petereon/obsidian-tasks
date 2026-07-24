@@ -57,6 +57,22 @@
   color: var(--text-normal);
 }
 
+/* Search */
+.tasks-panel__search {
+  padding: 6px 12px;
+  flex-shrink: 0;
+}
+
+.tasks-panel__search-input {
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: var(--radius-s, 4px);
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: var(--font-ui-small, 13px);
+}
+
 /* Scrollable body */
 .tasks-panel__body {
   flex: 1;

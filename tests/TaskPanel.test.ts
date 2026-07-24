@@ -1,4 +1,4 @@
-import { pruneCompletedToday } from "../src/components/TaskPanel";
+import { matchesSearch, pruneCompletedToday } from "../src/components/TaskPanel";
 import type { Task } from "../src/types";
 
 function makeTask(overrides: Partial<Task> = {}): Task {
@@ -47,5 +47,37 @@ describe("pruneCompletedToday", () => {
     const tasks = [makeTask({ completed: true, completedAt: undefined })];
     const input = new Set(["a.md::0"]);
     expect(pruneCompletedToday(input, tasks)).toBe(input);
+  });
+});
+
+describe("matchesSearch", () => {
+  it("matches everything when the query is empty", () => {
+    const task = makeTask({ text: "Buy milk", fileName: "shopping" });
+    expect(matchesSearch(task, "")).toBe(true);
+  });
+
+  it("matches everything when the query is whitespace only", () => {
+    const task = makeTask({ text: "Buy milk", fileName: "shopping" });
+    expect(matchesSearch(task, "   ")).toBe(true);
+  });
+
+  it("matches on task text, case-insensitively", () => {
+    const task = makeTask({ text: "Buy Milk", fileName: "shopping" });
+    expect(matchesSearch(task, "milk")).toBe(true);
+  });
+
+  it("matches on filename, case-insensitively", () => {
+    const task = makeTask({ text: "Buy milk", fileName: "Shopping" });
+    expect(matchesSearch(task, "shop")).toBe(true);
+  });
+
+  it("matches a partial substring mid-word", () => {
+    const task = makeTask({ text: "Reorganize garage", fileName: "chores" });
+    expect(matchesSearch(task, "organ")).toBe(true);
+  });
+
+  it("returns false when nothing matches", () => {
+    const task = makeTask({ text: "Buy milk", fileName: "shopping" });
+    expect(matchesSearch(task, "dentist")).toBe(false);
   });
 });

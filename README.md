@@ -33,6 +33,8 @@ Open the panel via the ribbon icon (☑) or **Ctrl/Cmd+P → "Open Tasks panel"*
 
 The panel has three tabs: **Grouped** (Overdue/Today/Upcoming/No Date, plus what's been completed today), **Flat** (one due-date-sorted list), and **History** — every task you've ever completed, grouped by the day it was done, most recent day first and expanded, older days collapsed. Unchecking a task in History un-completes it, same as anywhere else in the panel.
 
+The search box above the list filters by task text or filename (case-insensitive) across all three tabs live as you type.
+
 ### Due dates
 
 | Syntax | Meaning |
