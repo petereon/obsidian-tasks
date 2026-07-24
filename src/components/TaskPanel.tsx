@@ -7,9 +7,10 @@ import { nextOccurrence } from "../Recurrence";
 import { formatDue } from "../formatDue";
 import { GroupedView } from "./GroupedView";
 import { FlatView } from "./FlatView";
+import { HistoryView } from "./HistoryView";
 import { useApp } from "./AppContext";
 
-type ViewMode = "grouped" | "flat";
+type ViewMode = "grouped" | "flat" | "history";
 
 interface Props {
   store: TaskStore;
@@ -101,6 +102,7 @@ export function TaskPanel({ store, onRefresh }: Props) {
   const completedTodayTasks = tasks.filter(
     (t) => isCompletedToday(t.completedAt) || completedTodayIds.has(t.id)
   );
+  const allCompletedTasks = tasks.filter((t) => t.completed && t.completedAt !== undefined);
 
   return (
     <div className="tasks-panel">
@@ -119,24 +121,34 @@ export function TaskPanel({ store, onRefresh }: Props) {
           >
             Flat
           </button>
+          <button
+            className={`tasks-panel__tab${mode === "history" ? " tasks-panel__tab--active" : ""}`}
+            onClick={() => setMode("history")}
+          >
+            History
+          </button>
           <button className="tasks-panel__refresh" onClick={() => void onRefresh()} title="Refresh">
             ↻
           </button>
         </div>
       </div>
       <div className="tasks-panel__body">
-        {mode === "grouped" ? (
+        {mode === "grouped" && (
           <GroupedView
             activeTasks={activeTasks}
             completedTodayTasks={completedTodayTasks}
             onToggle={(t) => void handleToggle(t)}
           />
-        ) : (
+        )}
+        {mode === "flat" && (
           <FlatView
             activeTasks={activeTasks}
             completedTodayTasks={completedTodayTasks}
             onToggle={(t) => void handleToggle(t)}
           />
+        )}
+        {mode === "history" && (
+          <HistoryView completedTasks={allCompletedTasks} onToggle={(t) => void handleToggle(t)} />
         )}
       </div>
     </div>

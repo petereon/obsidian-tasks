@@ -7,7 +7,7 @@ An [Obsidian](https://obsidian.md) plugin that aggregates every task across your
 ## Features
 
 - **Vault-wide task list** — scans all markdown files; updates in real time as you edit
-- **Grouped & Flat views** — group tasks by source note or see everything in one list
+- **Grouped, Flat & History views** — group tasks by due date, see everything in one list, or browse everything you've ever completed
 - **Due dates** — add `[due:: 2025-06-01]` or `[due:: 2025-06-01 14:30]` to any task
 - **Desktop notifications** — fires a notification N minutes before a timed task is due (configurable)
 - **Completion timestamps** — checking a task writes `[done:: YYYY-MM-DD HH:MM]` back to the file; unchecking strips it
@@ -30,6 +30,8 @@ An [Obsidian](https://obsidian.md) plugin that aggregates every task across your
 ## Usage
 
 Open the panel via the ribbon icon (☑) or **Ctrl/Cmd+P → "Open Tasks panel"**.
+
+The panel has three tabs: **Grouped** (Overdue/Today/Upcoming/No Date, plus what's been completed today), **Flat** (one due-date-sorted list), and **History** — every task you've ever completed, grouped by the day it was done, most recent day first and expanded, older days collapsed. Unchecking a task in History un-completes it, same as anywhere else in the panel.
 
 ### Due dates
 

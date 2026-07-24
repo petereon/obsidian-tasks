@@ -8,7 +8,7 @@ interface Props {
   onToggle: (task: Task) => void;
 }
 
-interface SectionProps {
+export interface SectionProps {
   label: string;
   tasks: Task[];
   defaultOpen: boolean;
@@ -16,7 +16,7 @@ interface SectionProps {
   onToggle: (task: Task) => void;
 }
 
-function Section({ label, tasks, defaultOpen, completed = false, onToggle }: SectionProps) {
+export function Section({ label, tasks, defaultOpen, completed = false, onToggle }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
