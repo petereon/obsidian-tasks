@@ -1,19 +1,17 @@
-import { Plugin, TFile } from "obsidian";
+import { Notice, Plugin, TFile } from "obsidian";
 import { parseTasksFromFile, shouldExcludeFile } from "./src/TaskParser";
 import { TaskStore } from "./src/TaskStore";
-import { toggleTask } from "./src/TaskToggler";
+import { advanceRecurringTask, toggleTask } from "./src/TaskToggler";
+import { DUE_REGEX, formatDueAnnotation } from "./src/dueDate";
+import { nextOccurrence } from "./src/Recurrence";
+import { formatDue } from "./src/formatDue";
 import { TASK_PANEL_VIEW_TYPE, TaskPanelView } from "./src/views/TaskPanelView";
 import { DueDateModal } from "./src/modals/DueDateModal";
 import { Notifier } from "./src/Notifier";
 import { TasksSettingsTab } from "./src/SettingsTab";
 import { DEFAULT_SETTINGS, type PluginSettings } from "./src/settings";
 
-const DUE_RE = /\[due::\s*(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2}))?\]/;
 const DUE_RE_G = /\s*\[due::\s*\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2})?\]/g;
-
-function padTwo(n: number): string {
-  return String(n).padStart(2, "0");
-}
 
 export default class ObsidianTasksPlugin extends Plugin {
   private store: TaskStore = new TaskStore();
@@ -68,7 +66,7 @@ export default class ObsidianTasksPlugin extends Plugin {
         const lineText = editor.getLine(line);
         if (!/^\s*- \[.\]/.test(lineText)) return;
 
-        const match = lineText.match(DUE_RE);
+        const match = lineText.match(DUE_REGEX);
         let initialDate: Date | null = null;
         let initialHasTime = false;
         if (match) {
@@ -86,13 +84,7 @@ export default class ObsidianTasksPlugin extends Plugin {
         new DueDateModal(this.app, initialDate, initialHasTime, (date, hasTime) => {
           let updated = lineText.replace(DUE_RE_G, "").replace(/\s+$/, "");
           if (date !== null) {
-            const y = date.getFullYear();
-            const mo = padTwo(date.getMonth() + 1);
-            const d = padTwo(date.getDate());
-            let annotation = `[due:: ${y}-${mo}-${d}`;
-            if (hasTime) annotation += ` ${padTwo(date.getHours())}:${padTwo(date.getMinutes())}`;
-            annotation += "]";
-            updated = `${updated} ${annotation}`;
+            updated = `${updated} ${formatDueAnnotation(date, hasTime)}`;
           }
           editor.setLine(line, updated);
         }).open();
@@ -177,7 +169,13 @@ export default class ObsidianTasksPlugin extends Plugin {
       // Write annotations — vault.process fires changed again, but next parse
       // will find completedAt set (or unset) and take no action.
       for (const task of needsAnnotation) {
-        await toggleTask(this.app.vault, file, task.line, true);
+        if (task.repeat && task.due) {
+          const nextDue = nextOccurrence(task.due, task.repeat, new Date());
+          await advanceRecurringTask(this.app.vault, file, task.line, nextDue, task.hasTime);
+          new Notice(`Advanced to ${formatDue(nextDue, task.hasTime)}`);
+        } else {
+          await toggleTask(this.app.vault, file, task.line, true);
+        }
       }
       for (const task of needsStrip) {
         await toggleTask(this.app.vault, file, task.line, false);

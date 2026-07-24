@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { TFile } from "obsidian";
+import { Notice, TFile } from "obsidian";
 import type { Task } from "../types";
 import type { TaskStore } from "../TaskStore";
-import { toggleTask } from "../TaskToggler";
+import { advanceRecurringTask, toggleTask } from "../TaskToggler";
+import { nextOccurrence } from "../Recurrence";
+import { formatDue } from "../formatDue";
 import { GroupedView } from "./GroupedView";
 import { FlatView } from "./FlatView";
 import { useApp } from "./AppContext";
@@ -69,14 +71,25 @@ export function TaskPanel({ store, onRefresh }: Props) {
   async function handleToggle(task: Task): Promise<void> {
     // Task is "completing" unless it's already marked complete via file or optimistic state
     const completing = !task.completed && !completedTodayIds.has(task.id) && !isCompletedToday(task.completedAt);
+
+    const file = app.vault.getAbstractFileByPath(task.filePath);
+    if (!(file instanceof TFile)) return;
+
+    // Recurring tasks roll forward in place instead of reaching a checked state,
+    // so they must never be tracked as "completed today".
+    if (completing && task.repeat && task.due) {
+      const nextDue = nextOccurrence(task.due, task.repeat, new Date());
+      await advanceRecurringTask(app.vault, file, task.line, nextDue, task.hasTime);
+      new Notice(`Advanced to ${formatDue(nextDue, task.hasTime)}`);
+      return;
+    }
+
     setCompletedTodayIds((prev) => {
       const next = new Set(prev);
       completing ? next.add(task.id) : next.delete(task.id);
       return next;
     });
 
-    const file = app.vault.getAbstractFileByPath(task.filePath);
-    if (!(file instanceof TFile)) return;
     await toggleTask(app.vault, file, task.line, completing);
   }
 

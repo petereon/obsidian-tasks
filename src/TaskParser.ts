@@ -1,9 +1,10 @@
 import type { ListItemCache } from "obsidian";
-import type { Task } from "./types";
+import type { RepeatRule, Task } from "./types";
+import { DUE_REGEX, parseDue } from "./dueDate";
 
-const DUE_REGEX = /\[due::\s*(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2}))?\]/;
 const DONE_REGEX = /\[done::\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\]/;
 const NO_COLLECT_REGEX = /\[tasks-no-collect::\s*(true|false)\s*\]/;
+const REPEAT_REGEX = /\[repeat::\s*every\s+(?:(\d+)\s+)?(day|week|month|year)s?\s*\]/;
 const WIKILINK_REGEX = /\[\[([^\]]+)\]\]/g;
 const MARKDOWN_LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
 
@@ -41,10 +42,12 @@ export function parseTasksFromFile(
 
     const { due, hasTime } = parseDue(rawText);
     const completedAt = parseDone(rawText);
+    const repeat = parseRepeatRule(rawText);
     const text = rawText
       .replace(DUE_REGEX, "")
       .replace(DONE_REGEX, "")
       .replace(NO_COLLECT_REGEX, "")
+      .replace(REPEAT_REGEX, "")
       .replace(WIKILINK_REGEX, wikilinkCaption)
       .replace(MARKDOWN_LINK_REGEX, "$1")
       .replace(/\s+/g, " ")
@@ -60,6 +63,7 @@ export function parseTasksFromFile(
       filePath,
       fileName,
       line: lineNumber,
+      repeat,
     });
   }
 
@@ -75,17 +79,12 @@ function parseDone(text: string): Date | undefined {
   return new Date(year, month - 1, day, hours, minutes, 0);
 }
 
-function parseDue(text: string): { due: Date | null; hasTime: boolean } {
-  const match = text.match(DUE_REGEX);
-  if (!match) return { due: null, hasTime: false };
+export function parseRepeatRule(text: string): RepeatRule | null {
+  const match = text.match(REPEAT_REGEX);
+  if (!match) return null;
 
-  const [, dateStr, timeStr] = match;
-  const [year, month, day] = (dateStr as string).split("-").map(Number);
+  const [, countStr, unit] = match;
+  const count = countStr ? Number(countStr) : 1;
 
-  if (timeStr) {
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    return { due: new Date(year, month - 1, day, hours, minutes, 0), hasTime: true };
-  }
-
-  return { due: new Date(year, month - 1, day, 0, 0, 0), hasTime: false };
+  return { count, unit: unit as RepeatRule["unit"] };
 }

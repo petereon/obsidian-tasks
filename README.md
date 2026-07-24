@@ -40,6 +40,23 @@ Open the panel via the ribbon icon (☑) or **Ctrl/Cmd+P → "Open Tasks panel"*
 
 Set or update a due date on the current task line with **Ctrl/Cmd+P → "Set due date"** — opens a date/time picker and writes the annotation for you.
 
+### Recurring tasks
+
+Add `[repeat:: every ...]` to a task that also has a `[due::]` date to make it automatically reschedule instead of staying done forever:
+
+| Syntax | Meaning |
+|---|---|
+| `[repeat:: every day]` | Every day |
+| `[repeat:: every 3 days]` | Every 3 days |
+| `[repeat:: every week]` | Every week |
+| `[repeat:: every 2 weeks]` | Every 2 weeks |
+| `[repeat:: every month]` | Every month |
+| `[repeat:: every year]` | Every year |
+
+`[repeat::]` **requires a `[due::]` date to have any effect** — with no due date it's inert and the task behaves like a normal one-off task.
+
+Completing a recurring task doesn't mark it done: instead of getting a `[done::]` timestamp, its checkbox stays unchecked and its `[due::]` is rewritten to the next occurrence (skipping ahead past any missed cycles if it was badly overdue). No completion history is kept for that task — the panel shows a brief notice ("Advanced to ...") as the only feedback, and a small repeat icon next to the due date marks it as recurring in the list.
+
 ### Excluding a task
 
 Add `[tasks-no-collect:: true]` to a task line to keep it off the panel entirely — useful for checklist items in templates or example checkboxes that aren't real tasks. The task stays untouched in the file; it's just skipped during the scan. Use `[tasks-no-collect:: false]` to explicitly keep a task collected.

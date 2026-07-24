@@ -1,4 +1,5 @@
 import type { TFile, Vault } from "obsidian";
+import { DUE_REGEX, formatDueAnnotation } from "./dueDate";
 
 const DONE_ANNOTATION_REGEX = /\s*\[done::\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\]/g;
 
@@ -36,6 +37,29 @@ export async function toggleTask(
     if (completed) {
       updated = updated.replace(/\s+$/, "") + nowAnnotation();
     }
+
+    lines[line] = updated;
+    return lines.join("\n");
+  });
+}
+
+export async function advanceRecurringTask(
+  vault: Vault,
+  file: TFile,
+  line: number,
+  nextDue: Date,
+  hasTime: boolean
+): Promise<void> {
+  await vault.process(file, (content) => {
+    const lines = content.split("\n");
+    const target = lines[line];
+    if (target === undefined) return content;
+
+    // Force the checkbox to unchecked, regardless of current state.
+    let updated = target.replace(/^(\s*- \[)[ x](\].*)$/, (_, pre: string, post: string) => `${pre} ${post}`);
+
+    // Rewrite the due annotation to the next occurrence; leave repeat/done alone.
+    updated = updated.replace(DUE_REGEX, formatDueAnnotation(nextDue, hasTime));
 
     lines[line] = updated;
     return lines.join("\n");

@@ -1,4 +1,4 @@
-import { toggleTask } from "../src/TaskToggler";
+import { advanceRecurringTask, toggleTask } from "../src/TaskToggler";
 import { TFile } from "obsidian";
 import type { Vault } from "obsidian";
 
@@ -59,5 +59,56 @@ describe("toggleTask", () => {
     const file = new TFile("note.md");
     await toggleTask(vault, file, 0, true);
     expect(vault.process).toHaveBeenCalledWith(file, expect.any(Function));
+  });
+});
+
+describe("advanceRecurringTask", () => {
+  it("forces the checkbox to unchecked when starting unchecked", async () => {
+    const { vault, getContent } = makeVault("- [ ] Weekly review [due:: 2026-01-05]");
+    await advanceRecurringTask(vault, new TFile("note.md"), 0, new Date(2026, 0, 12, 0, 0, 0), false);
+    expect(getContent()).toMatch(/^- \[ \] Weekly review/);
+  });
+
+  it("forces the checkbox to unchecked when starting checked", async () => {
+    const { vault, getContent } = makeVault("- [x] Weekly review [due:: 2026-01-05]");
+    await advanceRecurringTask(vault, new TFile("note.md"), 0, new Date(2026, 0, 12, 0, 0, 0), false);
+    expect(getContent()).toMatch(/^- \[ \] Weekly review/);
+  });
+
+  it("rewrites the due date annotation to the next occurrence", async () => {
+    const { vault, getContent } = makeVault("- [ ] Weekly review [due:: 2026-01-05]");
+    await advanceRecurringTask(vault, new TFile("note.md"), 0, new Date(2026, 0, 12, 0, 0, 0), false);
+    expect(getContent()).toBe("- [ ] Weekly review [due:: 2026-01-12]");
+  });
+
+  it("rewrites the due date annotation including time when hasTime is true", async () => {
+    const { vault, getContent } = makeVault("- [ ] Meeting [due:: 2026-01-05 14:30]");
+    await advanceRecurringTask(vault, new TFile("note.md"), 0, new Date(2026, 0, 12, 9, 0, 0), true);
+    expect(getContent()).toBe("- [ ] Meeting [due:: 2026-01-12 09:00]");
+  });
+
+  it("never adds a done annotation", async () => {
+    const { vault, getContent } = makeVault("- [x] Weekly review [due:: 2026-01-05]");
+    await advanceRecurringTask(vault, new TFile("note.md"), 0, new Date(2026, 0, 12, 0, 0, 0), false);
+    expect(getContent()).not.toMatch(/\[done::/);
+  });
+
+  it("leaves an existing repeat annotation untouched", async () => {
+    const { vault, getContent } = makeVault(
+      "- [x] Weekly review [due:: 2026-01-05] [repeat:: every week]"
+    );
+    await advanceRecurringTask(vault, new TFile("note.md"), 0, new Date(2026, 0, 12, 0, 0, 0), false);
+    expect(getContent()).toBe("- [ ] Weekly review [due:: 2026-01-12] [repeat:: every week]");
+  });
+
+  it("only modifies the target line", async () => {
+    const { vault, getContent } = makeVault(
+      "line 0\n- [x] Weekly review [due:: 2026-01-05]\nline 2"
+    );
+    await advanceRecurringTask(vault, new TFile("note.md"), 1, new Date(2026, 0, 12, 0, 0, 0), false);
+    const lines = getContent().split("\n");
+    expect(lines[0]).toBe("line 0");
+    expect(lines[1]).toBe("- [ ] Weekly review [due:: 2026-01-12]");
+    expect(lines[2]).toBe("line 2");
   });
 });

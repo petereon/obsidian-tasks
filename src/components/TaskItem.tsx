@@ -25,6 +25,28 @@ function LinkIcon() {
   );
 }
 
+function RepeatIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ display: "block", flexShrink: 0 }}
+    >
+      <path d="m17 2 4 4-4 4" />
+      <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+      <path d="m7 22-4-4 4-4" />
+      <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+    </svg>
+  );
+}
+
 interface Props {
   task: Task;
   completed?: boolean;
@@ -59,6 +81,11 @@ export function TaskItem({ task, completed = false, onToggle }: Props) {
         {task.text}
       </span>
       <span className="tasks-item__meta">
+        {task.repeat && (
+          <span className="tasks-item__repeat" title="Recurring task">
+            <RepeatIcon />
+          </span>
+        )}
         {doneLabel && <span className="tasks-item__done">{doneLabel}</span>}
         {!doneLabel && dueLabel && <span className="tasks-item__due">{dueLabel}</span>}
       </span>

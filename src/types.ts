@@ -1,3 +1,8 @@
+export interface RepeatRule {
+  count: number;
+  unit: "day" | "week" | "month" | "year";
+}
+
 export interface Task {
   /** Stable identity: `${filePath}::${line}` */
   id: string;
@@ -15,4 +20,6 @@ export interface Task {
   fileName: string;
   /** 0-indexed line number in the file */
   line: number;
+  /** Set when [repeat:: every ...] annotation is present in task text */
+  repeat: RepeatRule | null;
 }

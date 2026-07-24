@@ -172,6 +172,79 @@ describe("parseTasksFromFile", () => {
     const tasks = parseTasksFromFile("note.md", content, items);
     expect(tasks[0].text).toBe("Visit External");
   });
+
+  it("has a null repeat when no annotation present", () => {
+    const content = "- [ ] Buy groceries";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].repeat).toBeNull();
+  });
+
+  it("parses [repeat:: every week]", () => {
+    const content = "- [ ] Weekly review [repeat:: every week]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].repeat).toEqual({ count: 1, unit: "week" });
+  });
+
+  it("parses [repeat:: every 2 weeks] with plural unit", () => {
+    const content = "- [ ] Biweekly sync [repeat:: every 2 weeks]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].repeat).toEqual({ count: 2, unit: "week" });
+  });
+
+  it("parses [repeat:: every day]", () => {
+    const content = "- [ ] Daily standup [repeat:: every day]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].repeat).toEqual({ count: 1, unit: "day" });
+  });
+
+  it("parses [repeat:: every 3 days] with plural unit", () => {
+    const content = "- [ ] Water plants [repeat:: every 3 days]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].repeat).toEqual({ count: 3, unit: "day" });
+  });
+
+  it("parses [repeat:: every month]", () => {
+    const content = "- [ ] Pay rent [repeat:: every month]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].repeat).toEqual({ count: 1, unit: "month" });
+  });
+
+  it("parses [repeat:: every year]", () => {
+    const content = "- [ ] Renew passport [repeat:: every year]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].repeat).toEqual({ count: 1, unit: "year" });
+  });
+
+  it("treats a malformed repeat annotation as absent and leaves text alone", () => {
+    const content = "- [ ] Something [repeat:: whenever]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].repeat).toBeNull();
+    expect(tasks[0].text).toBe("Something [repeat:: whenever]");
+  });
+
+  it("strips the repeat annotation from displayed text", () => {
+    const content = "- [ ] Weekly review [repeat:: every week] extra text";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].text).toBe("Weekly review extra text");
+  });
+
+  it("strips due, done, and repeat annotations together", () => {
+    const content =
+      "- [x] Weekly review [due:: 2026-01-15] [repeat:: every week] [done:: 2026-01-15 09:00]";
+    const items = [makeListItem(0, "x")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].text).toBe("Weekly review");
+    expect(tasks[0].repeat).toEqual({ count: 1, unit: "week" });
+  });
 });
 
 describe("shouldExcludeFile", () => {
