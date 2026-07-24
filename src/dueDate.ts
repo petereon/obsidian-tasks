@@ -1,4 +1,5 @@
 export const DUE_REGEX = /\[due::\s*(\d{4}-\d{2}-\d{2})(?:\s+(\d{2}:\d{2}))?\]/;
+export const DUE_REGEX_GLOBAL = /\s*\[due::\s*\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2})?\]/g;
 
 function padTwo(n: number): string {
   return String(n).padStart(2, "0");

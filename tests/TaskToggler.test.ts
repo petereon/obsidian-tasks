@@ -1,4 +1,4 @@
-import { advanceRecurringTask, toggleTask } from "../src/TaskToggler";
+import { advanceRecurringTask, setDueDate, toggleTask } from "../src/TaskToggler";
 import { TFile } from "obsidian";
 import type { Vault } from "obsidian";
 
@@ -109,6 +109,55 @@ describe("advanceRecurringTask", () => {
     const lines = getContent().split("\n");
     expect(lines[0]).toBe("line 0");
     expect(lines[1]).toBe("- [ ] Weekly review [due:: 2026-01-12]");
+    expect(lines[2]).toBe("line 2");
+  });
+});
+
+describe("setDueDate", () => {
+  it("adds a due date to a task with none", async () => {
+    const { vault, getContent } = makeVault("- [ ] Buy milk");
+    await setDueDate(vault, new TFile("note.md"), 0, new Date(2026, 5, 1, 0, 0, 0), false);
+    expect(getContent()).toBe("- [ ] Buy milk [due:: 2026-06-01]");
+  });
+
+  it("replaces an existing due date", async () => {
+    const { vault, getContent } = makeVault("- [ ] Buy milk [due:: 2026-01-05]");
+    await setDueDate(vault, new TFile("note.md"), 0, new Date(2026, 5, 1, 14, 30, 0), true);
+    expect(getContent()).toBe("- [ ] Buy milk [due:: 2026-06-01 14:30]");
+  });
+
+  it("does not accumulate stray whitespace when replacing a due date with extra spacing", async () => {
+    const { vault, getContent } = makeVault("- [ ] Buy milk   [due:: 2026-01-05]");
+    await setDueDate(vault, new TFile("note.md"), 0, new Date(2026, 5, 1, 0, 0, 0), false);
+    expect(getContent()).toBe("- [ ] Buy milk [due:: 2026-06-01]");
+  });
+
+  it("clears an existing due date when date is null", async () => {
+    const { vault, getContent } = makeVault("- [ ] Buy milk [due:: 2026-01-05]");
+    await setDueDate(vault, new TFile("note.md"), 0, null, false);
+    expect(getContent()).toBe("- [ ] Buy milk");
+  });
+
+  it("preserves a done annotation on the line, matching main.ts's existing reordering behavior", async () => {
+    const { vault, getContent } = makeVault(
+      "- [x] Buy milk [due:: 2026-01-05] [done:: 2026-01-05 09:00]"
+    );
+    await setDueDate(vault, new TFile("note.md"), 0, new Date(2026, 5, 1, 0, 0, 0), false);
+    expect(getContent()).toBe("- [x] Buy milk [done:: 2026-01-05 09:00] [due:: 2026-06-01]");
+  });
+
+  it("preserves a repeat annotation on the line, matching main.ts's existing reordering behavior", async () => {
+    const { vault, getContent } = makeVault("- [ ] Weekly review [due:: 2026-01-05] [repeat:: every week]");
+    await setDueDate(vault, new TFile("note.md"), 0, new Date(2026, 5, 1, 0, 0, 0), false);
+    expect(getContent()).toBe("- [ ] Weekly review [repeat:: every week] [due:: 2026-06-01]");
+  });
+
+  it("only modifies the target line", async () => {
+    const { vault, getContent } = makeVault("line 0\n- [ ] Buy milk\nline 2");
+    await setDueDate(vault, new TFile("note.md"), 1, new Date(2026, 5, 1, 0, 0, 0), false);
+    const lines = getContent().split("\n");
+    expect(lines[0]).toBe("line 0");
+    expect(lines[1]).toBe("- [ ] Buy milk [due:: 2026-06-01]");
     expect(lines[2]).toBe("line 2");
   });
 });

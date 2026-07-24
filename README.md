@@ -40,7 +40,7 @@ The panel has three tabs: **Grouped** (Overdue/Today/Upcoming/No Date, plus what
 | `[due:: 2025-06-01]` | Date-only due date |
 | `[due:: 2025-06-01 09:00]` | Date + time (enables notifications) |
 
-Set or update a due date on the current task line with **Ctrl/Cmd+P → "Set due date"** — opens a date/time picker and writes the annotation for you.
+Set or update a due date on the current task line with **Ctrl/Cmd+P → "Set due date"** — opens a date/time picker and writes the annotation for you. The same picker is one click away for any task that already has a due date: click its due-date badge directly in the panel, no need to have the note open.
 
 ### Recurring tasks
 

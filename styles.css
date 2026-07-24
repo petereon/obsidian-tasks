@@ -147,6 +147,12 @@
 .tasks-item__due {
   color: var(--text-muted);
   white-space: nowrap;
+  cursor: pointer;
+}
+
+.tasks-item__due:hover {
+  color: var(--text-accent);
+  text-decoration: underline;
 }
 
 .tasks-item__repeat {

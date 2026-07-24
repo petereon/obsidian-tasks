@@ -1,5 +1,5 @@
 import type { TFile, Vault } from "obsidian";
-import { DUE_REGEX, formatDueAnnotation } from "./dueDate";
+import { DUE_REGEX, DUE_REGEX_GLOBAL, formatDueAnnotation } from "./dueDate";
 
 const DONE_ANNOTATION_REGEX = /\s*\[done::\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\]/g;
 
@@ -60,6 +60,28 @@ export async function advanceRecurringTask(
 
     // Rewrite the due annotation to the next occurrence; leave repeat/done alone.
     updated = updated.replace(DUE_REGEX, formatDueAnnotation(nextDue, hasTime));
+
+    lines[line] = updated;
+    return lines.join("\n");
+  });
+}
+
+export async function setDueDate(
+  vault: Vault,
+  file: TFile,
+  line: number,
+  date: Date | null,
+  hasTime: boolean
+): Promise<void> {
+  await vault.process(file, (content) => {
+    const lines = content.split("\n");
+    const target = lines[line];
+    if (target === undefined) return content;
+
+    let updated = target.replace(DUE_REGEX_GLOBAL, "").replace(/\s+$/, "");
+    if (date !== null) {
+      updated = `${updated} ${formatDueAnnotation(date, hasTime)}`;
+    }
 
     lines[line] = updated;
     return lines.join("\n");

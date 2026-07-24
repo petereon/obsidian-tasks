@@ -28,6 +28,22 @@ export class Plugin {}
 export class ItemView {}
 export class WorkspaceLeaf {}
 
+export class Modal {
+  app: App;
+  titleEl = { setText: (_text: string) => {} };
+  modalEl = { addClass: (_cls: string) => {} };
+  contentEl: HTMLElement = {} as HTMLElement;
+
+  constructor(app: App) {
+    this.app = app;
+  }
+
+  open(): void {}
+  close(): void {}
+  onOpen(): void {}
+  onClose(): void {}
+}
+
 export interface Vault {
   getMarkdownFiles(): TFile[];
   cachedRead(file: TFile): Promise<string>;

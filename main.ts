@@ -2,7 +2,7 @@ import { Notice, Plugin, TFile } from "obsidian";
 import { parseTasksFromFile, shouldExcludeFile } from "./src/TaskParser";
 import { TaskStore } from "./src/TaskStore";
 import { advanceRecurringTask, toggleTask } from "./src/TaskToggler";
-import { DUE_REGEX, formatDueAnnotation } from "./src/dueDate";
+import { DUE_REGEX, DUE_REGEX_GLOBAL, formatDueAnnotation } from "./src/dueDate";
 import { nextOccurrence } from "./src/Recurrence";
 import { formatDue } from "./src/formatDue";
 import { matchesAnyPattern } from "./src/globMatch";
@@ -13,8 +13,6 @@ import { addQuickTask } from "./src/QuickAdd";
 import { Notifier } from "./src/Notifier";
 import { TasksSettingsTab } from "./src/SettingsTab";
 import { DEFAULT_SETTINGS, type PluginSettings } from "./src/settings";
-
-const DUE_RE_G = /\s*\[due::\s*\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2})?\]/g;
 
 export default class ObsidianTasksPlugin extends Plugin {
   private store: TaskStore = new TaskStore();
@@ -85,7 +83,7 @@ export default class ObsidianTasksPlugin extends Plugin {
         }
 
         new DueDateModal(this.app, initialDate, initialHasTime, (date, hasTime) => {
-          let updated = lineText.replace(DUE_RE_G, "").replace(/\s+$/, "");
+          let updated = lineText.replace(DUE_REGEX_GLOBAL, "").replace(/\s+$/, "");
           if (date !== null) {
             updated = `${updated} ${formatDueAnnotation(date, hasTime)}`;
           }

@@ -2,6 +2,8 @@ import React from "react";
 import { TFile } from "obsidian";
 import type { Task } from "../types";
 import { formatDue } from "../formatDue";
+import { setDueDate } from "../TaskToggler";
+import { DueDateModal } from "../modals/DueDateModal";
 import { useApp } from "./AppContext";
 
 function LinkIcon() {
@@ -64,6 +66,16 @@ export function TaskItem({ task, completed = false, onToggle }: Props) {
     void leaf.openFile(file, { eState: { line: task.line } });
   }
 
+  function openDueDateEditor(e: React.MouseEvent) {
+    e.preventDefault();
+    const file = app.vault.getAbstractFileByPath(task.filePath);
+    if (!(file instanceof TFile)) return;
+
+    new DueDateModal(app, task.due, task.hasTime, (date, hasTime) => {
+      void setDueDate(app.vault, file, task.line, date, hasTime);
+    }).open();
+  }
+
   const dueLabel = formatDue(task.due, task.hasTime);
   const doneLabel = task.completedAt
     ? `done ${String(task.completedAt.getHours()).padStart(2, "0")}:${String(task.completedAt.getMinutes()).padStart(2, "0")}`
@@ -87,7 +99,17 @@ export function TaskItem({ task, completed = false, onToggle }: Props) {
           </span>
         )}
         {doneLabel && <span className="tasks-item__done">{doneLabel}</span>}
-        {!doneLabel && dueLabel && <span className="tasks-item__due">{dueLabel}</span>}
+        {!doneLabel && dueLabel && (
+          <span
+            className="tasks-item__due"
+            onClick={openDueDateEditor}
+            role="button"
+            tabIndex={0}
+            title="Edit due date"
+          >
+            {dueLabel}
+          </span>
+        )}
       </span>
       <span
         className="tasks-item__file"
