@@ -57,6 +57,22 @@
   color: var(--text-normal);
 }
 
+/* Ribbon attention badge */
+.tasks-ribbon-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--color-red);
+  color: var(--text-on-accent);
+  font-size: 9px;
+  line-height: 14px;
+  text-align: center;
+}
+
 /* Search */
 .tasks-panel__search {
   padding: 6px 12px;

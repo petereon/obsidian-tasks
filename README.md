@@ -12,6 +12,7 @@ An [Obsidian](https://obsidian.md) plugin that aggregates every task across your
 - **Desktop notifications** — fires a notification N minutes before a timed task is due (configurable)
 - **Completion timestamps** — checking a task writes `[done:: YYYY-MM-DD HH:MM]` back to the file; unchecking strips it
 - **Jump to source** — click a task or its filename to open the note at the exact line
+- **Ribbon badge** — the sidebar icon shows a count of overdue + due-today tasks at a glance
 
 ## Installation
 

@@ -6,6 +6,7 @@ import { DUE_REGEX, DUE_REGEX_GLOBAL, formatDueAnnotation } from "./src/dueDate"
 import { nextOccurrence } from "./src/Recurrence";
 import { formatDue } from "./src/formatDue";
 import { matchesAnyPattern } from "./src/globMatch";
+import { countAttentionTasks } from "./src/ribbonBadge";
 import { TASK_PANEL_VIEW_TYPE, TaskPanelView } from "./src/views/TaskPanelView";
 import { DueDateModal } from "./src/modals/DueDateModal";
 import { QuickAddModal } from "./src/modals/QuickAddModal";
@@ -49,9 +50,23 @@ export default class ObsidianTasksPlugin extends Plugin {
       (leaf) => new TaskPanelView(leaf, this.store, () => this.initialScan())
     );
 
-    this.addRibbonIcon("check-square", "Open Tasks panel", () => {
+    const ribbonEl = this.addRibbonIcon("check-square", "Open Tasks panel", () => {
       void this.activateView();
     });
+    ribbonEl.style.position = "relative";
+    const badgeEl = ribbonEl.createEl("span", { cls: "tasks-ribbon-badge" });
+    badgeEl.style.display = "none";
+
+    const updateBadge = () => {
+      const count = countAttentionTasks(this.store.getAllTasks(), new Date());
+      if (count > 0) {
+        badgeEl.textContent = String(count);
+        badgeEl.style.display = "";
+      } else {
+        badgeEl.style.display = "none";
+      }
+    };
+    this.store.subscribe(updateBadge);
 
     this.addCommand({
       id: "open-tasks-panel",

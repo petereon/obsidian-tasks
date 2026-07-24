@@ -46,13 +46,12 @@ export function Section({ label, tasks, defaultOpen, completed = false, onToggle
   );
 }
 
-function bucketize(tasks: Task[]): {
+export function bucketize(tasks: Task[], now: Date): {
   overdue: Task[];
   today: Task[];
   upcoming: Task[];
   noDate: Task[];
 } {
-  const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrowStart = new Date(todayStart.getTime() + 86400000);
 
@@ -83,7 +82,7 @@ function bucketize(tasks: Task[]): {
 }
 
 export function GroupedView({ activeTasks, completedTodayTasks, onToggle }: Props) {
-  const { overdue, today, upcoming, noDate } = bucketize(activeTasks);
+  const { overdue, today, upcoming, noDate } = bucketize(activeTasks, new Date());
 
   return (
     <div className="tasks-grouped">
