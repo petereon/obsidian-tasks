@@ -524,6 +524,41 @@
   border-color: var(--interactive-accent);
 }
 
+/* Repeat interval custom row */
+.rip-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rip-custom__label {
+  font-size: 13px;
+  color: var(--text-normal);
+}
+
+.rip-custom__count {
+  width: 48px;
+  height: 28px;
+  text-align: center;
+  font-size: 13px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  padding: 0;
+}
+
+.rip-custom__unit {
+  flex: 1;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
 /* Set button */
 .dtp-set-btn {
   width: 100%;

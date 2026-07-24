@@ -10,7 +10,9 @@ import { countAttentionTasks } from "./src/ribbonBadge";
 import { TASK_PANEL_VIEW_TYPE, TaskPanelView } from "./src/views/TaskPanelView";
 import { DueDateModal } from "./src/modals/DueDateModal";
 import { QuickAddModal } from "./src/modals/QuickAddModal";
+import { RepeatIntervalModal } from "./src/modals/RepeatIntervalModal";
 import { addQuickTask } from "./src/QuickAdd";
+import { formatRepeatAnnotation, parseRepeatRule, REPEAT_REGEX_GLOBAL } from "./src/repeatRule";
 import { Notifier } from "./src/Notifier";
 import { TasksSettingsTab } from "./src/SettingsTab";
 import { DEFAULT_SETTINGS, type PluginSettings } from "./src/settings";
@@ -101,6 +103,26 @@ export default class ObsidianTasksPlugin extends Plugin {
           let updated = lineText.replace(DUE_REGEX_GLOBAL, "").replace(/\s+$/, "");
           if (date !== null) {
             updated = `${updated} ${formatDueAnnotation(date, hasTime)}`;
+          }
+          editor.setLine(line, updated);
+        }).open();
+      },
+    });
+
+    this.addCommand({
+      id: "set-repeat-interval",
+      name: "Set repeat interval",
+      editorCallback: (editor) => {
+        const line = editor.getCursor().line;
+        const lineText = editor.getLine(line);
+        if (!/^\s*- \[.\]/.test(lineText)) return;
+
+        const initialRule = parseRepeatRule(lineText);
+
+        new RepeatIntervalModal(this.app, initialRule, (rule) => {
+          let updated = lineText.replace(REPEAT_REGEX_GLOBAL, "").replace(/\s+$/, "");
+          if (rule !== null) {
+            updated = `${updated} ${formatRepeatAnnotation(rule)}`;
           }
           editor.setLine(line, updated);
         }).open();

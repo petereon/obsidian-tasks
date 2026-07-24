@@ -58,6 +58,8 @@ Add `[repeat:: every ...]` to a task that also has a `[due::]` date to make it a
 | `[repeat:: every month]` | Every month |
 | `[repeat:: every year]` | Every year |
 
+Set or update it on the current task line with **Ctrl/Cmd+P → "Set repeat interval"** — quick picks for Daily/Weekly/Monthly/Yearly, a custom count + unit for anything else (e.g. every 3 days), and a Clear option to remove it.
+
 `[repeat::]` **requires a `[due::]` date to have any effect** — with no due date it's inert and the task behaves like a normal one-off task.
 
 Completing a recurring task doesn't mark it done: instead of getting a `[done::]` timestamp, its checkbox stays unchecked and its `[due::]` is rewritten to the next occurrence (skipping ahead past any missed cycles if it was badly overdue). No completion history is kept for that task — the panel shows a brief notice ("Advanced to ...") as the only feedback, and a small repeat icon next to the due date marks it as recurring in the list.

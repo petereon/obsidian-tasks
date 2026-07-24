@@ -1,10 +1,10 @@
 import type { ListItemCache } from "obsidian";
-import type { RepeatRule, Task } from "./types";
+import type { Task } from "./types";
 import { DUE_REGEX, parseDue } from "./dueDate";
+import { parseRepeatRule, REPEAT_REGEX } from "./repeatRule";
 
 const DONE_REGEX = /\[done::\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\]/;
 const NO_COLLECT_REGEX = /\[tasks-no-collect::\s*(true|false)\s*\]/;
-const REPEAT_REGEX = /\[repeat::\s*every\s+(?:(\d+)\s+)?(day|week|month|year)s?\s*\]/;
 const WIKILINK_REGEX = /\[\[([^\]]+)\]\]/g;
 const MARKDOWN_LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
 
@@ -77,14 +77,4 @@ function parseDone(text: string): Date | undefined {
   const [year, month, day] = (dateStr as string).split("-").map(Number);
   const [hours, minutes] = (timeStr as string).split(":").map(Number);
   return new Date(year, month - 1, day, hours, minutes, 0);
-}
-
-export function parseRepeatRule(text: string): RepeatRule | null {
-  const match = text.match(REPEAT_REGEX);
-  if (!match) return null;
-
-  const [, countStr, unit] = match;
-  const count = countStr ? Number(countStr) : 1;
-
-  return { count, unit: unit as RepeatRule["unit"] };
 }
