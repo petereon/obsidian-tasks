@@ -93,16 +93,16 @@ export function GroupedView({ activeTasks, completedTodayTasks, onToggle }: Prop
         <Section label="TODAY" tasks={today} defaultOpen={true} onToggle={onToggle} />
       )}
       {upcoming.length > 0 && (
-        <Section label="UPCOMING" tasks={upcoming} defaultOpen={false} onToggle={onToggle} />
+        <Section label="UPCOMING" tasks={upcoming} defaultOpen={true} onToggle={onToggle} />
       )}
       {noDate.length > 0 && (
-        <Section label="NO DATE" tasks={noDate} defaultOpen={false} onToggle={onToggle} />
+        <Section label="NO DATE" tasks={noDate} defaultOpen={true} onToggle={onToggle} />
       )}
       {completedTodayTasks.length > 0 && (
         <Section
           label="COMPLETED TODAY"
           tasks={completedTodayTasks}
-          defaultOpen={false}
+          defaultOpen={true}
           completed={true}
           onToggle={onToggle}
         />

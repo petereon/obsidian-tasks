@@ -66,7 +66,7 @@ export function HistoryView({ completedTasks, onToggle }: Props) {
           key={group.label + index}
           label={group.label}
           tasks={group.tasks}
-          defaultOpen={index === 0}
+          defaultOpen={true}
           completed={true}
           onToggle={onToggle}
         />

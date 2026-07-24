@@ -1,6 +1,6 @@
 {
   "name": "obsidian-tasks-panel",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Aggregates tasks from vault notes into a sidebar panel",
   "main": "main.js",
   "scripts": {
