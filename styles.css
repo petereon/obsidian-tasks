@@ -194,6 +194,18 @@
   flex-shrink: 0;
 }
 
+.tasks-item__skip {
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.tasks-item__skip:hover {
+  color: var(--text-accent);
+}
+
 .tasks-item__done {
   color: var(--color-green, var(--text-faint));
   white-space: nowrap;

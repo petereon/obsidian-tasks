@@ -6,6 +6,7 @@ interface Props {
   activeTasks: Task[];
   completedTodayTasks: Task[];
   onToggle: (task: Task) => void;
+  onSkip: (task: Task) => void;
 }
 
 export interface SectionProps {
@@ -14,9 +15,10 @@ export interface SectionProps {
   defaultOpen: boolean;
   completed?: boolean;
   onToggle: (task: Task) => void;
+  onSkip?: (task: Task) => void;
 }
 
-export function Section({ label, tasks, defaultOpen, completed = false, onToggle }: SectionProps) {
+export function Section({ label, tasks, defaultOpen, completed = false, onToggle, onSkip }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -38,6 +40,7 @@ export function Section({ label, tasks, defaultOpen, completed = false, onToggle
               task={task}
               completed={completed}
               onToggle={onToggle}
+              onSkip={onSkip}
             />
           ))}
         </div>
@@ -81,22 +84,22 @@ export function bucketize(tasks: Task[], now: Date): {
   return { overdue, today, upcoming, noDate };
 }
 
-export function GroupedView({ activeTasks, completedTodayTasks, onToggle }: Props) {
+export function GroupedView({ activeTasks, completedTodayTasks, onToggle, onSkip }: Props) {
   const { overdue, today, upcoming, noDate } = bucketize(activeTasks, new Date());
 
   return (
     <div className="tasks-grouped">
       {overdue.length > 0 && (
-        <Section label="OVERDUE" tasks={overdue} defaultOpen={true} onToggle={onToggle} />
+        <Section label="OVERDUE" tasks={overdue} defaultOpen={true} onToggle={onToggle} onSkip={onSkip} />
       )}
       {today.length > 0 && (
-        <Section label="TODAY" tasks={today} defaultOpen={true} onToggle={onToggle} />
+        <Section label="TODAY" tasks={today} defaultOpen={true} onToggle={onToggle} onSkip={onSkip} />
       )}
       {upcoming.length > 0 && (
-        <Section label="UPCOMING" tasks={upcoming} defaultOpen={true} onToggle={onToggle} />
+        <Section label="UPCOMING" tasks={upcoming} defaultOpen={true} onToggle={onToggle} onSkip={onSkip} />
       )}
       {noDate.length > 0 && (
-        <Section label="NO DATE" tasks={noDate} defaultOpen={true} onToggle={onToggle} />
+        <Section label="NO DATE" tasks={noDate} defaultOpen={true} onToggle={onToggle} onSkip={onSkip} />
       )}
       {completedTodayTasks.length > 0 && (
         <Section

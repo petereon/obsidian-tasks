@@ -6,6 +6,7 @@ interface Props {
   activeTasks: Task[];
   completedTodayTasks: Task[];
   onToggle: (task: Task) => void;
+  onSkip: (task: Task) => void;
 }
 
 function sortTasks(tasks: Task[]): Task[] {
@@ -17,14 +18,14 @@ function sortTasks(tasks: Task[]): Task[] {
   });
 }
 
-export function FlatView({ activeTasks, completedTodayTasks, onToggle }: Props) {
+export function FlatView({ activeTasks, completedTodayTasks, onToggle, onSkip }: Props) {
   const sorted = sortTasks(activeTasks);
   const sortedCompleted = sortTasks(completedTodayTasks);
 
   return (
     <div className="tasks-flat">
       {sorted.map((task) => (
-        <TaskItem key={task.id} task={task} completed={false} onToggle={onToggle} />
+        <TaskItem key={task.id} task={task} completed={false} onToggle={onToggle} onSkip={onSkip} />
       ))}
       {sortedCompleted.map((task) => (
         <TaskItem key={task.id} task={task} completed={true} onToggle={onToggle} />

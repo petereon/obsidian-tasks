@@ -79,21 +79,33 @@ export function TaskPanel({ store, onRefresh }: Props) {
     return () => clearInterval(timer);
   }, []);
 
+  async function advanceRecurring(task: Task, noticePrefix: string): Promise<void> {
+    if (!task.repeat || !task.due) return;
+    const file = app.vault.getAbstractFileByPath(task.filePath);
+    if (!(file instanceof TFile)) return;
+
+    const nextDue = nextOccurrence(task.due, task.repeat, new Date());
+    await advanceRecurringTask(app.vault, file, task.line, nextDue, task.hasTime);
+    new Notice(`${noticePrefix} ${formatDue(nextDue, task.hasTime)}`);
+  }
+
+  async function handleSkip(task: Task): Promise<void> {
+    await advanceRecurring(task, "Skipped to");
+  }
+
   async function handleToggle(task: Task): Promise<void> {
     // Task is "completing" unless it's already marked complete via file or optimistic state
     const completing = !task.completed && !completedTodayIds.has(task.id) && !isCompletedToday(task.completedAt);
 
-    const file = app.vault.getAbstractFileByPath(task.filePath);
-    if (!(file instanceof TFile)) return;
-
     // Recurring tasks roll forward in place instead of reaching a checked state,
     // so they must never be tracked as "completed today".
     if (completing && task.repeat && task.due) {
-      const nextDue = nextOccurrence(task.due, task.repeat, new Date());
-      await advanceRecurringTask(app.vault, file, task.line, nextDue, task.hasTime);
-      new Notice(`Advanced to ${formatDue(nextDue, task.hasTime)}`);
+      await advanceRecurring(task, "Advanced to");
       return;
     }
+
+    const file = app.vault.getAbstractFileByPath(task.filePath);
+    if (!(file instanceof TFile)) return;
 
     setCompletedTodayIds((prev) => {
       const next = new Set(prev);
@@ -159,6 +171,7 @@ export function TaskPanel({ store, onRefresh }: Props) {
             activeTasks={activeTasks}
             completedTodayTasks={completedTodayTasks}
             onToggle={(t) => void handleToggle(t)}
+            onSkip={(t) => void handleSkip(t)}
           />
         )}
         {mode === "flat" && (
@@ -166,6 +179,7 @@ export function TaskPanel({ store, onRefresh }: Props) {
             activeTasks={activeTasks}
             completedTodayTasks={completedTodayTasks}
             onToggle={(t) => void handleToggle(t)}
+            onSkip={(t) => void handleSkip(t)}
           />
         )}
         {mode === "history" && (

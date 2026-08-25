@@ -27,6 +27,26 @@ function LinkIcon() {
   );
 }
 
+function SkipIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ display: "block", flexShrink: 0 }}
+    >
+      <polygon points="5 4 15 12 5 20 5 4" />
+      <line x1="19" y1="5" x2="19" y2="19" />
+    </svg>
+  );
+}
+
 function RepeatIcon() {
   return (
     <svg
@@ -53,9 +73,10 @@ interface Props {
   task: Task;
   completed?: boolean;
   onToggle: (task: Task) => void;
+  onSkip?: (task: Task) => void;
 }
 
-export function TaskItem({ task, completed = false, onToggle }: Props) {
+export function TaskItem({ task, completed = false, onToggle, onSkip }: Props) {
   const app = useApp();
 
   function openFile(e: React.MouseEvent) {
@@ -96,6 +117,20 @@ export function TaskItem({ task, completed = false, onToggle }: Props) {
         {task.repeat && (
           <span className="tasks-item__repeat" title="Recurring task">
             <RepeatIcon />
+          </span>
+        )}
+        {task.repeat && task.due && !completed && onSkip && (
+          <span
+            className="tasks-item__skip"
+            onClick={(e) => {
+              e.preventDefault();
+              onSkip(task);
+            }}
+            role="button"
+            tabIndex={0}
+            title="Skip to next occurrence"
+          >
+            <SkipIcon />
           </span>
         )}
         {doneLabel && <span className="tasks-item__done">{doneLabel}</span>}
