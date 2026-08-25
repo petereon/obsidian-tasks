@@ -195,6 +195,24 @@
   flex-shrink: 0;
 }
 
+.tasks-item__priority {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.tasks-item__priority--high {
+  color: var(--color-red);
+}
+
+.tasks-item__priority--medium {
+  color: var(--color-orange, var(--color-yellow));
+}
+
+.tasks-item__priority--low {
+  color: var(--text-faint);
+}
+
 .tasks-item__skip {
   display: flex;
   align-items: center;

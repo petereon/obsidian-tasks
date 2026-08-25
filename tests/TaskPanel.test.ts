@@ -21,6 +21,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     line: 0,
     repeat: null,
     parentId: null,
+    priority: null,
     ...overrides,
   };
 }

@@ -272,6 +272,44 @@ describe("parseTasksFromFile", () => {
     expect(tasks[1].parentId).toBe("note.md::0");
   });
 
+  it("has a null priority when no annotation present", () => {
+    const content = "- [ ] Buy groceries";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].priority).toBeNull();
+  });
+
+  it("parses [priority:: high]", () => {
+    const content = "- [ ] Ship release [priority:: high]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].priority).toBe("high");
+  });
+
+  it("strips the priority annotation from displayed text", () => {
+    const content = "- [ ] Ship release [priority:: high] to prod";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].text).toBe("Ship release to prod");
+  });
+
+  it("treats a malformed priority annotation as absent and leaves text alone", () => {
+    const content = "- [ ] Something [priority:: urgent]";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].priority).toBeNull();
+    expect(tasks[0].text).toBe("Something [priority:: urgent]");
+  });
+
+  it("strips due, done, repeat, and priority annotations together", () => {
+    const content =
+      "- [x] Weekly review [due:: 2026-01-15] [repeat:: every week] [priority:: high] [done:: 2026-01-15 09:00]";
+    const items = [makeListItem(0, "x")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].text).toBe("Weekly review");
+    expect(tasks[0].priority).toBe("high");
+  });
+
   it("strips due, done, and repeat annotations together", () => {
     const content =
       "- [x] Weekly review [due:: 2026-01-15] [repeat:: every week] [done:: 2026-01-15 09:00]";

@@ -1,3 +1,5 @@
+import type { Priority } from "./priority";
+
 export interface RepeatRule {
   count: number;
   unit: "day" | "week" | "month" | "year";
@@ -24,4 +26,6 @@ export interface Task {
   repeat: RepeatRule | null;
   /** id of the nearest task ancestor in the list tree, or null if top-level */
   parentId: string | null;
+  /** Set when [priority:: high|medium|low] annotation is present in task text */
+  priority: Priority | null;
 }

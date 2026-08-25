@@ -2,6 +2,7 @@ import type { ListItemCache } from "obsidian";
 import type { Task } from "./types";
 import { DUE_REGEX, parseDue } from "./dueDate";
 import { parseRepeatRule, REPEAT_REGEX } from "./repeatRule";
+import { parsePriority, PRIORITY_REGEX } from "./priority";
 
 const DONE_REGEX = /\[done::\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\]/;
 const NO_COLLECT_REGEX = /\[tasks-no-collect::\s*(true|false)\s*\]/;
@@ -71,11 +72,13 @@ export function parseTasksFromFile(
     const { due, hasTime } = parseDue(rawText);
     const completedAt = parseDone(rawText);
     const repeat = parseRepeatRule(rawText);
+    const priority = parsePriority(rawText);
     const text = rawText
       .replace(DUE_REGEX, "")
       .replace(DONE_REGEX, "")
       .replace(NO_COLLECT_REGEX, "")
       .replace(REPEAT_REGEX, "")
+      .replace(PRIORITY_REGEX, "")
       .replace(WIKILINK_REGEX, wikilinkCaption)
       .replace(MARKDOWN_LINK_REGEX, "$1")
       .replace(/\s+/g, " ")
@@ -93,6 +96,7 @@ export function parseTasksFromFile(
       line: lineNumber,
       repeat,
       parentId: resolveParentTaskId(item, filePath, lineToItem, taskLines),
+      priority,
     });
   }
 
