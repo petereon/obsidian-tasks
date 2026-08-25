@@ -382,6 +382,12 @@
   border-color: transparent;
 }
 
+.dtp-quick__btn--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
 .dtp-divider {
   height: 1px;
   background: var(--background-modifier-border);

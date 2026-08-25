@@ -11,8 +11,10 @@ import { TASK_PANEL_VIEW_TYPE, TaskPanelView } from "./src/views/TaskPanelView";
 import { DueDateModal } from "./src/modals/DueDateModal";
 import { QuickAddModal } from "./src/modals/QuickAddModal";
 import { RepeatIntervalModal } from "./src/modals/RepeatIntervalModal";
+import { PriorityModal } from "./src/modals/PriorityModal";
 import { addQuickTask } from "./src/QuickAdd";
 import { formatRepeatAnnotation, parseRepeatRule, REPEAT_REGEX_GLOBAL } from "./src/repeatRule";
+import { formatPriorityAnnotation, parsePriority, PRIORITY_REGEX_GLOBAL } from "./src/priority";
 import { Notifier } from "./src/Notifier";
 import { TasksSettingsTab } from "./src/SettingsTab";
 import { DEFAULT_SETTINGS, type PluginSettings } from "./src/settings";
@@ -123,6 +125,26 @@ export default class ObsidianTasksPlugin extends Plugin {
           let updated = lineText.replace(REPEAT_REGEX_GLOBAL, "").replace(/\s+$/, "");
           if (rule !== null) {
             updated = `${updated} ${formatRepeatAnnotation(rule)}`;
+          }
+          editor.setLine(line, updated);
+        }).open();
+      },
+    });
+
+    this.addCommand({
+      id: "set-priority",
+      name: "Set priority",
+      editorCallback: (editor) => {
+        const line = editor.getCursor().line;
+        const lineText = editor.getLine(line);
+        if (!/^\s*- \[.\]/.test(lineText)) return;
+
+        const initialPriority = parsePriority(lineText);
+
+        new PriorityModal(this.app, initialPriority, (priority) => {
+          let updated = lineText.replace(PRIORITY_REGEX_GLOBAL, "").replace(/\s+$/, "");
+          if (priority !== null) {
+            updated = `${updated} ${formatPriorityAnnotation(priority)}`;
           }
           editor.setLine(line, updated);
         }).open();
