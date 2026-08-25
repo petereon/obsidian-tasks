@@ -592,3 +592,23 @@
   opacity: 0.4;
   cursor: default;
 }
+
+.tasks-notifier-snooze-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tasks-notifier-snooze-btn {
+  padding: 3px 8px;
+  border-radius: var(--radius-s, 4px);
+  border: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+  font-size: 11px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+}
+
+.tasks-notifier-snooze-btn:hover {
+  background: var(--background-modifier-hover);
+}
