@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Notice, TFile } from "obsidian";
 import type { Task } from "../types";
 import type { TaskStore } from "../TaskStore";
-import { advanceRecurringTask, toggleTask } from "../TaskToggler";
+import { advanceRecurringTask, toggleTask, toggleTaskCascade } from "../TaskToggler";
 import { nextOccurrence } from "../Recurrence";
 import { formatDue } from "../formatDue";
 import { GroupedView } from "./GroupedView";
@@ -44,6 +44,76 @@ export function matchesSearch(task: Task, query: string): boolean {
   );
 }
 
+// A subtask nested under a matching ancestor should stay visible even if it
+// doesn't itself match — and a match buried in a subtask should surface its
+// whole ancestor chain — so search matches against the whole subtree at once.
+export function subtreeMatchesSearch(
+  task: Task,
+  query: string,
+  childrenByParent: Map<string, Task[]>
+): boolean {
+  if (matchesSearch(task, query)) return true;
+  const children = childrenByParent.get(task.id) ?? [];
+  return children.some((c) => subtreeMatchesSearch(c, query, childrenByParent));
+}
+
+export function buildChildrenIndex(tasks: Task[]): Map<string, Task[]> {
+  const map = new Map<string, Task[]>();
+  for (const t of tasks) {
+    if (t.parentId === null) continue;
+    const list = map.get(t.parentId);
+    if (list) list.push(t);
+    else map.set(t.parentId, [t]);
+  }
+  for (const list of map.values()) list.sort((a, b) => a.line - b.line);
+  return map;
+}
+
+export function collectDescendants(taskId: string, childrenByParent: Map<string, Task[]>): Task[] {
+  const direct = childrenByParent.get(taskId) ?? [];
+  const all: Task[] = [];
+  for (const child of direct) {
+    all.push(child, ...collectDescendants(child.id, childrenByParent));
+  }
+  return all;
+}
+
+function isEffectivelyComplete(task: Task, justCompletedIds: Set<string>): boolean {
+  return task.completed || justCompletedIds.has(task.id);
+}
+
+// Walks up from `task`'s parent, auto-completing any ancestor whose direct
+// children are now all effectively complete (bidirectional rollup: finishing
+// the last subtask finishes the parent, recursively up the chain). Stops at
+// a recurring ancestor — a recurring task never reaches a checked state —
+// or as soon as an ancestor still has an incomplete child.
+export function computeRollupCompletions(
+  task: Task,
+  justCompletedIds: Set<string>,
+  tasksById: Map<string, Task>,
+  childrenByParent: Map<string, Task[]>
+): string[] {
+  const autoCompleted: string[] = [];
+  const completed = new Set(justCompletedIds);
+  let parentId = task.parentId;
+
+  while (parentId !== null) {
+    const parent = tasksById.get(parentId);
+    if (!parent) break;
+    if (parent.completed || completed.has(parent.id)) break;
+    if (parent.repeat && parent.due) break;
+
+    const siblings = childrenByParent.get(parent.id) ?? [];
+    if (!siblings.every((s) => isEffectivelyComplete(s, completed))) break;
+
+    completed.add(parent.id);
+    autoCompleted.push(parent.id);
+    parentId = parent.parentId;
+  }
+
+  return autoCompleted;
+}
+
 function isCompletedToday(date: Date | undefined): boolean {
   if (!date) return false;
   const now = new Date();
@@ -68,6 +138,9 @@ export function TaskPanel({ store, onRefresh }: Props) {
       setCompletedTodayIds((prev) => pruneCompletedToday(prev, newTasks));
     });
   }, [store]);
+
+  const childrenByParent = useMemo(() => buildChildrenIndex(tasks), [tasks]);
+  const tasksById = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks]);
 
   // Date-based groupings (Completed Today, Overdue/Today/Upcoming) are derived
   // from the current time at render. Without vault activity there's otherwise
@@ -107,26 +180,52 @@ export function TaskPanel({ store, onRefresh }: Props) {
     const file = app.vault.getAbstractFileByPath(task.filePath);
     if (!(file instanceof TFile)) return;
 
+    if (completing) {
+      // Cascade down to subtasks (skipping recurring ones — they never reach
+      // a checked state), then roll up: auto-complete any ancestor whose
+      // children are now all complete, recursively.
+      const descendants = collectDescendants(task.id, childrenByParent).filter(
+        (d) => !(d.repeat && d.due)
+      );
+      const justCompleted = new Set<string>([task.id, ...descendants.map((d) => d.id)]);
+      const autoCompleted = computeRollupCompletions(task, justCompleted, tasksById, childrenByParent);
+
+      setCompletedTodayIds((prev) => {
+        const next = new Set(prev);
+        for (const id of justCompleted) next.add(id);
+        for (const id of autoCompleted) next.add(id);
+        return next;
+      });
+
+      await toggleTaskCascade(app.vault, file, [task.line, ...descendants.map((d) => d.line)], true);
+      if (autoCompleted.length > 0) {
+        const ancestorLines = autoCompleted.map((id) => tasksById.get(id)!.line);
+        await toggleTaskCascade(app.vault, file, ancestorLines, true);
+      }
+      return;
+    }
+
     setCompletedTodayIds((prev) => {
       const next = new Set(prev);
-      completing ? next.add(task.id) : next.delete(task.id);
+      next.delete(task.id);
       return next;
     });
 
-    await toggleTask(app.vault, file, task.line, completing);
+    await toggleTask(app.vault, file, task.line, false);
   }
 
-  const visibleTasks = tasks.filter((t) => matchesSearch(t, query));
+  const topLevelTasks = tasks.filter((t) => t.parentId === null);
+  const visibleTopLevel = topLevelTasks.filter((t) => subtreeMatchesSearch(t, query, childrenByParent));
 
   // Active = not yet completed in file AND not optimistically completed
-  const activeTasks = visibleTasks.filter(
+  const activeTasks = visibleTopLevel.filter(
     (t) => !t.completed && !completedTodayIds.has(t.id) && !isCompletedToday(t.completedAt)
   );
   // Completed Today = has [done:: today] annotation OR optimistically completed this session
-  const completedTodayTasks = visibleTasks.filter(
+  const completedTodayTasks = visibleTopLevel.filter(
     (t) => isCompletedToday(t.completedAt) || completedTodayIds.has(t.id)
   );
-  const allCompletedTasks = visibleTasks.filter((t) => t.completed && t.completedAt !== undefined);
+  const allCompletedTasks = visibleTopLevel.filter((t) => t.completed && t.completedAt !== undefined);
 
   return (
     <div className="tasks-panel">
@@ -170,6 +269,7 @@ export function TaskPanel({ store, onRefresh }: Props) {
           <GroupedView
             activeTasks={activeTasks}
             completedTodayTasks={completedTodayTasks}
+            childrenByParent={childrenByParent}
             onToggle={(t) => void handleToggle(t)}
             onSkip={(t) => void handleSkip(t)}
           />
@@ -178,12 +278,17 @@ export function TaskPanel({ store, onRefresh }: Props) {
           <FlatView
             activeTasks={activeTasks}
             completedTodayTasks={completedTodayTasks}
+            childrenByParent={childrenByParent}
             onToggle={(t) => void handleToggle(t)}
             onSkip={(t) => void handleSkip(t)}
           />
         )}
         {mode === "history" && (
-          <HistoryView completedTasks={allCompletedTasks} onToggle={(t) => void handleToggle(t)} />
+          <HistoryView
+            completedTasks={allCompletedTasks}
+            childrenByParent={childrenByParent}
+            onToggle={(t) => void handleToggle(t)}
+          />
         )}
       </div>
     </div>

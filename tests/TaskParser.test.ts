@@ -1,14 +1,14 @@
 import { parseTasksFromFile, shouldExcludeFile } from "../src/TaskParser";
 import type { ListItemCache } from "obsidian";
 
-function makeListItem(line: number, taskChar?: string): ListItemCache {
+function makeListItem(line: number, taskChar?: string, parent = -1): ListItemCache {
   return {
     task: taskChar,
     position: {
       start: { line, col: 0, offset: 0 },
       end: { line, col: 50, offset: 50 },
     },
-    parent: -1,
+    parent,
   };
 }
 
@@ -235,6 +235,41 @@ describe("parseTasksFromFile", () => {
     const items = [makeListItem(0, " ")];
     const tasks = parseTasksFromFile("note.md", content, items);
     expect(tasks[0].text).toBe("Weekly review extra text");
+  });
+
+  it("has a null parentId for a top-level task", () => {
+    const content = "- [ ] Buy groceries";
+    const items = [makeListItem(0, " ")];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].parentId).toBeNull();
+  });
+
+  it("resolves parentId for a task nested directly under another task", () => {
+    const content = "- [ ] Plan trip\n  - [ ] Book flight";
+    const items = [makeListItem(0, " "), makeListItem(1, " ", 0)];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[1].parentId).toBe("note.md::0");
+  });
+
+  it("resolves parentId through a chain of nested subtasks", () => {
+    const content = "- [ ] Plan trip\n  - [ ] Book flight\n    - [ ] Pick airline";
+    const items = [makeListItem(0, " "), makeListItem(1, " ", 0), makeListItem(2, " ", 1)];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks[0].parentId).toBeNull();
+    expect(tasks[1].parentId).toBe("note.md::0");
+    expect(tasks[2].parentId).toBe("note.md::1");
+  });
+
+  it("walks up through a plain (non-task) bullet to find the nearest task ancestor", () => {
+    const content = "- [ ] Plan trip\n  - a note\n    - [ ] Book flight";
+    const items = [
+      makeListItem(0, " "),
+      makeListItem(1, undefined, 0),
+      makeListItem(2, " ", 1),
+    ];
+    const tasks = parseTasksFromFile("note.md", content, items);
+    expect(tasks).toHaveLength(2);
+    expect(tasks[1].parentId).toBe("note.md::0");
   });
 
   it("strips due, done, and repeat annotations together", () => {

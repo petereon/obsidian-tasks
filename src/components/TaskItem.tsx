@@ -74,9 +74,11 @@ interface Props {
   completed?: boolean;
   onToggle: (task: Task) => void;
   onSkip?: (task: Task) => void;
+  /** Nesting depth for a subtask; 0 for a top-level task. */
+  indent?: number;
 }
 
-export function TaskItem({ task, completed = false, onToggle, onSkip }: Props) {
+export function TaskItem({ task, completed = false, onToggle, onSkip, indent = 0 }: Props) {
   const app = useApp();
 
   function openFile(e: React.MouseEvent) {
@@ -102,8 +104,11 @@ export function TaskItem({ task, completed = false, onToggle, onSkip }: Props) {
     ? `done ${String(task.completedAt.getHours()).padStart(2, "0")}:${String(task.completedAt.getMinutes()).padStart(2, "0")}`
     : null;
 
+  const style =
+    indent > 0 ? ({ "--tasks-indent": `${indent * 18}px` } as React.CSSProperties) : undefined;
+
   return (
-    <div className={`tasks-item${completed ? " tasks-item--completed" : ""}`}>
+    <div className={`tasks-item${completed ? " tasks-item--completed" : ""}`} style={style}>
       <input
         type="checkbox"
         className="tasks-item__checkbox"

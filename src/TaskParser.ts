@@ -17,6 +17,25 @@ export function shouldExcludeFile(frontmatter: Record<string, unknown> | undefin
   return frontmatter?.["tasks-no-collect"] === true;
 }
 
+// Obsidian's ListItemCache.parent is the line number of the parent list item,
+// or negative (encoding the enclosing list's start line) for a top-level item.
+function resolveParentTaskId(
+  item: ListItemCache,
+  filePath: string,
+  lineToItem: Map<number, ListItemCache>,
+  taskLines: Set<number>
+): string | null {
+  let current = item;
+  while (current.parent >= 0) {
+    const parentLine = current.parent;
+    if (taskLines.has(parentLine)) return `${filePath}::${parentLine}`;
+    const parentItem = lineToItem.get(parentLine);
+    if (!parentItem) return null;
+    current = parentItem;
+  }
+  return null;
+}
+
 export function parseTasksFromFile(
   filePath: string,
   content: string,
@@ -25,6 +44,15 @@ export function parseTasksFromFile(
   const lines = content.split("\n");
   const fileName = filePath.split("/").pop()?.replace(/\.md$/, "") ?? filePath;
   const tasks: Task[] = [];
+
+  // Built from *all* list items (not just tasks) so a task nested under a
+  // plain bullet can still find its nearest task ancestor by walking up.
+  const lineToItem = new Map<number, ListItemCache>();
+  const taskLines = new Set<number>();
+  for (const item of listItems) {
+    lineToItem.set(item.position.start.line, item);
+    if (item.task !== undefined) taskLines.add(item.position.start.line);
+  }
 
   for (const item of listItems) {
     if (item.task === undefined) continue;
@@ -64,6 +92,7 @@ export function parseTasksFromFile(
       fileName,
       line: lineNumber,
       repeat,
+      parentId: resolveParentTaskId(item, filePath, lineToItem, taskLines),
     });
   }
 

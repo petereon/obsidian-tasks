@@ -4,6 +4,7 @@ import { Section } from "./GroupedView";
 
 interface Props {
   completedTasks: Task[];
+  childrenByParent: Map<string, Task[]>;
   onToggle: (task: Task) => void;
 }
 
@@ -56,7 +57,7 @@ export function bucketCompletedHistory(
   return groups.map(({ label, tasks: dayTasks }) => ({ label, tasks: dayTasks }));
 }
 
-export function HistoryView({ completedTasks, onToggle }: Props) {
+export function HistoryView({ completedTasks, childrenByParent, onToggle }: Props) {
   const groups = bucketCompletedHistory(completedTasks, new Date());
 
   return (
@@ -68,6 +69,7 @@ export function HistoryView({ completedTasks, onToggle }: Props) {
           tasks={group.tasks}
           defaultOpen={true}
           completed={true}
+          childrenByParent={childrenByParent}
           onToggle={onToggle}
         />
       ))}

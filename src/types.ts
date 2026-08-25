@@ -22,4 +22,6 @@ export interface Task {
   line: number;
   /** Set when [repeat:: every ...] annotation is present in task text */
   repeat: RepeatRule | null;
+  /** id of the nearest task ancestor in the list tree, or null if top-level */
+  parentId: string | null;
 }

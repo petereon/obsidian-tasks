@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import type { Task } from "../types";
-import { TaskItem } from "./TaskItem";
+import { TaskTree } from "./TaskTree";
 
 interface Props {
   activeTasks: Task[];
   completedTodayTasks: Task[];
+  childrenByParent: Map<string, Task[]>;
   onToggle: (task: Task) => void;
   onSkip: (task: Task) => void;
 }
@@ -14,11 +15,20 @@ export interface SectionProps {
   tasks: Task[];
   defaultOpen: boolean;
   completed?: boolean;
+  childrenByParent: Map<string, Task[]>;
   onToggle: (task: Task) => void;
   onSkip?: (task: Task) => void;
 }
 
-export function Section({ label, tasks, defaultOpen, completed = false, onToggle, onSkip }: SectionProps) {
+export function Section({
+  label,
+  tasks,
+  defaultOpen,
+  completed = false,
+  childrenByParent,
+  onToggle,
+  onSkip,
+}: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -35,10 +45,12 @@ export function Section({ label, tasks, defaultOpen, completed = false, onToggle
       {open && (
         <div className="tasks-section__body">
           {tasks.map((task) => (
-            <TaskItem
+            <TaskTree
               key={task.id}
               task={task}
+              depth={0}
               completed={completed}
+              childrenByParent={childrenByParent}
               onToggle={onToggle}
               onSkip={onSkip}
             />
@@ -84,22 +96,50 @@ export function bucketize(tasks: Task[], now: Date): {
   return { overdue, today, upcoming, noDate };
 }
 
-export function GroupedView({ activeTasks, completedTodayTasks, onToggle, onSkip }: Props) {
+export function GroupedView({ activeTasks, completedTodayTasks, childrenByParent, onToggle, onSkip }: Props) {
   const { overdue, today, upcoming, noDate } = bucketize(activeTasks, new Date());
 
   return (
     <div className="tasks-grouped">
       {overdue.length > 0 && (
-        <Section label="OVERDUE" tasks={overdue} defaultOpen={true} onToggle={onToggle} onSkip={onSkip} />
+        <Section
+          label="OVERDUE"
+          tasks={overdue}
+          defaultOpen={true}
+          childrenByParent={childrenByParent}
+          onToggle={onToggle}
+          onSkip={onSkip}
+        />
       )}
       {today.length > 0 && (
-        <Section label="TODAY" tasks={today} defaultOpen={true} onToggle={onToggle} onSkip={onSkip} />
+        <Section
+          label="TODAY"
+          tasks={today}
+          defaultOpen={true}
+          childrenByParent={childrenByParent}
+          onToggle={onToggle}
+          onSkip={onSkip}
+        />
       )}
       {upcoming.length > 0 && (
-        <Section label="UPCOMING" tasks={upcoming} defaultOpen={true} onToggle={onToggle} onSkip={onSkip} />
+        <Section
+          label="UPCOMING"
+          tasks={upcoming}
+          defaultOpen={true}
+          childrenByParent={childrenByParent}
+          onToggle={onToggle}
+          onSkip={onSkip}
+        />
       )}
       {noDate.length > 0 && (
-        <Section label="NO DATE" tasks={noDate} defaultOpen={true} onToggle={onToggle} onSkip={onSkip} />
+        <Section
+          label="NO DATE"
+          tasks={noDate}
+          defaultOpen={true}
+          childrenByParent={childrenByParent}
+          onToggle={onToggle}
+          onSkip={onSkip}
+        />
       )}
       {completedTodayTasks.length > 0 && (
         <Section
@@ -107,6 +147,7 @@ export function GroupedView({ activeTasks, completedTodayTasks, onToggle, onSkip
           tasks={completedTodayTasks}
           defaultOpen={true}
           completed={true}
+          childrenByParent={childrenByParent}
           onToggle={onToggle}
         />
       )}

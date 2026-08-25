@@ -136,6 +136,7 @@
   align-items: flex-start;
   gap: 8px;
   padding: 4px 12px;
+  padding-left: calc(12px + var(--tasks-indent, 0px));
   border-radius: 4px;
   margin: 1px 4px;
 }

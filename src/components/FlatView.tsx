@@ -1,10 +1,11 @@
 import React from "react";
 import type { Task } from "../types";
-import { TaskItem } from "./TaskItem";
+import { TaskTree } from "./TaskTree";
 
 interface Props {
   activeTasks: Task[];
   completedTodayTasks: Task[];
+  childrenByParent: Map<string, Task[]>;
   onToggle: (task: Task) => void;
   onSkip: (task: Task) => void;
 }
@@ -18,17 +19,32 @@ function sortTasks(tasks: Task[]): Task[] {
   });
 }
 
-export function FlatView({ activeTasks, completedTodayTasks, onToggle, onSkip }: Props) {
+export function FlatView({ activeTasks, completedTodayTasks, childrenByParent, onToggle, onSkip }: Props) {
   const sorted = sortTasks(activeTasks);
   const sortedCompleted = sortTasks(completedTodayTasks);
 
   return (
     <div className="tasks-flat">
       {sorted.map((task) => (
-        <TaskItem key={task.id} task={task} completed={false} onToggle={onToggle} onSkip={onSkip} />
+        <TaskTree
+          key={task.id}
+          task={task}
+          depth={0}
+          completed={false}
+          childrenByParent={childrenByParent}
+          onToggle={onToggle}
+          onSkip={onSkip}
+        />
       ))}
       {sortedCompleted.map((task) => (
-        <TaskItem key={task.id} task={task} completed={true} onToggle={onToggle} />
+        <TaskTree
+          key={task.id}
+          task={task}
+          depth={0}
+          completed={true}
+          childrenByParent={childrenByParent}
+          onToggle={onToggle}
+        />
       ))}
     </div>
   );

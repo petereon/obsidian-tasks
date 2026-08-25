@@ -17,6 +17,8 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     filePath: "a.md",
     fileName: "a",
     line: 0,
+    repeat: null,
+    parentId: null,
     ...overrides,
   };
 }

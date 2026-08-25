@@ -1,4 +1,4 @@
-import { advanceRecurringTask, setDueDate, toggleTask } from "../src/TaskToggler";
+import { advanceRecurringTask, setDueDate, toggleTask, toggleTaskCascade } from "../src/TaskToggler";
 import { TFile } from "obsidian";
 import type { Vault } from "obsidian";
 
@@ -110,6 +110,45 @@ describe("advanceRecurringTask", () => {
     expect(lines[0]).toBe("line 0");
     expect(lines[1]).toBe("- [ ] Weekly review [due:: 2026-01-12]");
     expect(lines[2]).toBe("line 2");
+  });
+});
+
+describe("toggleTaskCascade", () => {
+  it("completes multiple lines in one write, each with a done annotation", async () => {
+    const { vault, getContent } = makeVault(
+      "- [ ] Plan trip\n  - [ ] Book flight\n  - [ ] Pack bags"
+    );
+    await toggleTaskCascade(vault, new TFile("note.md"), [0, 1, 2], true);
+    const lines = getContent().split("\n");
+    expect(lines[0]).toMatch(/^- \[x\] Plan trip \[done::/);
+    expect(lines[1]).toMatch(/^\s*- \[x\] Book flight \[done::/);
+    expect(lines[2]).toMatch(/^\s*- \[x\] Pack bags \[done::/);
+  });
+
+  it("uncompletes multiple lines and strips done annotations", async () => {
+    const { vault, getContent } = makeVault(
+      "- [x] Plan trip [done:: 2026-01-01 09:00]\n  - [x] Book flight [done:: 2026-01-01 09:00]"
+    );
+    await toggleTaskCascade(vault, new TFile("note.md"), [0, 1], false);
+    const lines = getContent().split("\n");
+    expect(lines[0]).toBe("- [ ] Plan trip");
+    expect(lines[1]).toBe("  - [ ] Book flight");
+  });
+
+  it("leaves lines outside the given set untouched", async () => {
+    const { vault, getContent } = makeVault("- [ ] A\n- [ ] B\n- [ ] C");
+    await toggleTaskCascade(vault, new TFile("note.md"), [0, 2], true);
+    const lines = getContent().split("\n");
+    expect(lines[0]).toMatch(/^- \[x\] A/);
+    expect(lines[1]).toBe("- [ ] B");
+    expect(lines[2]).toMatch(/^- \[x\] C/);
+  });
+
+  it("does not duplicate done annotations on an already-completed line", async () => {
+    const { vault, getContent } = makeVault("- [x] A [done:: 2026-01-01 09:00]");
+    await toggleTaskCascade(vault, new TFile("note.md"), [0], true);
+    const matches = getContent().match(/\[done::/g);
+    expect(matches).toHaveLength(1);
   });
 });
 

@@ -43,6 +43,34 @@ export async function toggleTask(
   });
 }
 
+export async function toggleTaskCascade(
+  vault: Vault,
+  file: TFile,
+  lines: number[],
+  completed: boolean
+): Promise<void> {
+  await vault.process(file, (content) => {
+    const arr = content.split("\n");
+
+    for (const lineNo of lines) {
+      const target = arr[lineNo];
+      if (target === undefined) continue;
+
+      let updated = target.replace(
+        /^(\s*- \[)[ x](\].*)$/,
+        (_, pre: string, post: string) => `${pre}${completed ? "x" : " "}${post}`
+      );
+      updated = updated.replace(DONE_ANNOTATION_REGEX, "");
+      if (completed) {
+        updated = updated.replace(/\s+$/, "") + nowAnnotation();
+      }
+      arr[lineNo] = updated;
+    }
+
+    return arr.join("\n");
+  });
+}
+
 export async function advanceRecurringTask(
   vault: Vault,
   file: TFile,
