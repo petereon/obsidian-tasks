@@ -54,24 +54,6 @@ export default class ObsidianTasksPlugin extends Plugin {
       (leaf) => new TaskPanelView(leaf, this.store, () => this.initialScan())
     );
 
-    const ribbonEl = this.addRibbonIcon("check-square", "Open Tasks panel", () => {
-      void this.activateView();
-    });
-    ribbonEl.style.position = "relative";
-    const badgeEl = ribbonEl.createEl("span", { cls: "tasks-ribbon-badge" });
-    badgeEl.style.display = "none";
-
-    const updateBadge = () => {
-      const count = countAttentionTasks(this.store.getAllTasks(), new Date());
-      if (count > 0) {
-        badgeEl.textContent = String(count);
-        badgeEl.style.display = "";
-      } else {
-        badgeEl.style.display = "none";
-      }
-    };
-    this.store.subscribe(updateBadge);
-
     this.addCommand({
       id: "open-tasks-panel",
       name: "Open Tasks panel",
@@ -168,6 +150,10 @@ export default class ObsidianTasksPlugin extends Plugin {
     });
 
     this.app.workspace.onLayoutReady(() => {
+      // The ribbon dock isn't guaranteed to be laid out yet during onload (most
+      // visible on a fresh install / mobile) — adding the icon before that can
+      // leave it invisible until some unrelated layout change repaints the ribbon.
+      this.setupRibbonIcon();
       void this.initialScan().then(() => {
         this.notifier.check(this.store.getAllTasks(), this.settings.notifyThresholdMinutes);
       });
@@ -262,6 +248,26 @@ export default class ObsidianTasksPlugin extends Plugin {
     }
 
     this.store.updateFile(file.path, newTasks);
+  }
+
+  private setupRibbonIcon(): void {
+    const ribbonEl = this.addRibbonIcon("check-square", "Open Tasks panel", () => {
+      void this.activateView();
+    });
+    ribbonEl.style.position = "relative";
+    const badgeEl = ribbonEl.createEl("span", { cls: "tasks-ribbon-badge" });
+    badgeEl.style.display = "none";
+
+    const updateBadge = () => {
+      const count = countAttentionTasks(this.store.getAllTasks(), new Date());
+      if (count > 0) {
+        badgeEl.textContent = String(count);
+        badgeEl.style.display = "";
+      } else {
+        badgeEl.style.display = "none";
+      }
+    };
+    this.store.subscribe(updateBadge);
   }
 
   private async activateView(): Promise<void> {
