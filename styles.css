@@ -43,6 +43,45 @@
   border-color: var(--interactive-accent);
 }
 
+.tasks-flat__sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px 8px;
+}
+
+.tasks-flat__sort-btn {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+}
+
+.tasks-flat__sort-btn--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.tasks-flat__sort-dir {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+}
+
+.tasks-flat__sort-dir:hover,
+.tasks-flat__sort-btn:hover {
+  color: var(--text-normal);
+}
+
 .tasks-panel__refresh {
   padding: 2px 6px;
   border-radius: 4px;

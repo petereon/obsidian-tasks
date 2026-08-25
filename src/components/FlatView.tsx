@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Task } from "../types";
+import { type SortDirection, type SortField, sortTasks } from "../sortTasks";
 import { TaskTree } from "./TaskTree";
 
 interface Props {
@@ -10,21 +11,36 @@ interface Props {
   onSkip: (task: Task) => void;
 }
 
-function sortTasks(tasks: Task[]): Task[] {
-  return [...tasks].sort((a, b) => {
-    if (!a.due && !b.due) return 0;
-    if (!a.due) return 1;
-    if (!b.due) return -1;
-    return a.due.getTime() - b.due.getTime();
-  });
-}
-
 export function FlatView({ activeTasks, completedTodayTasks, childrenByParent, onToggle, onSkip }: Props) {
-  const sorted = sortTasks(activeTasks);
-  const sortedCompleted = sortTasks(completedTodayTasks);
+  const [sortField, setSortField] = useState<SortField>("due");
+  const [direction, setDirection] = useState<SortDirection>("asc");
+
+  const sorted = sortTasks(activeTasks, sortField, direction);
+  const sortedCompleted = sortTasks(completedTodayTasks, sortField, direction);
 
   return (
     <div className="tasks-flat">
+      <div className="tasks-flat__sort-bar">
+        <button
+          className={`tasks-flat__sort-btn${sortField === "due" ? " tasks-flat__sort-btn--active" : ""}`}
+          onClick={() => setSortField("due")}
+        >
+          Due
+        </button>
+        <button
+          className={`tasks-flat__sort-btn${sortField === "priority" ? " tasks-flat__sort-btn--active" : ""}`}
+          onClick={() => setSortField("priority")}
+        >
+          Priority
+        </button>
+        <button
+          className="tasks-flat__sort-dir"
+          onClick={() => setDirection((d) => (d === "asc" ? "desc" : "asc"))}
+          title={direction === "asc" ? "Ascending — click for descending" : "Descending — click for ascending"}
+        >
+          {direction === "asc" ? "↑ Asc" : "↓ Desc"}
+        </button>
+      </div>
       {sorted.map((task) => (
         <TaskTree
           key={task.id}
