@@ -1,5 +1,5 @@
 import { Notice, Plugin, TFile } from "obsidian";
-import { parseTasksFromFile, shouldExcludeFile } from "./src/TaskParser";
+import { parseTasksFromFile, resolveProject, shouldExcludeFile } from "./src/TaskParser";
 import { TaskStore } from "./src/TaskStore";
 import { advanceRecurringTask, toggleTask } from "./src/TaskToggler";
 import { DUE_REGEX, DUE_REGEX_GLOBAL, formatDueAnnotation } from "./src/dueDate";
@@ -216,7 +216,10 @@ export default class ObsidianTasksPlugin extends Plugin {
       return;
     }
     const content = await this.app.vault.cachedRead(file);
-    const newTasks = parseTasksFromFile(file.path, content, cache.listItems ?? []);
+    const newTasks = parseTasksFromFile(file.path, content, cache.listItems ?? [], {
+      project: resolveProject(cache.frontmatter, file.parent?.path),
+      headings: (cache.headings ?? []).map((h) => ({ line: h.position.start.line, text: h.heading })),
+    });
 
     // Detect tasks that just became completed (editor check or panel check) and
     // lack a [done:: ...] annotation. Only fires when we have prior store data —

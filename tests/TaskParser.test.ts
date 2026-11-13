@@ -1,4 +1,4 @@
-import { parseTasksFromFile, shouldExcludeFile } from "../src/TaskParser";
+import { headingFor, parseTasksFromFile, resolveProject, shouldExcludeFile } from "../src/TaskParser";
 import type { ListItemCache } from "obsidian";
 
 function makeListItem(line: number, taskChar?: string, parent = -1): ListItemCache {
@@ -350,5 +350,33 @@ describe("tags", () => {
   });
   it("has empty tags by default", () => {
     expect(parse("- [ ] plain").tags).toEqual([]);
+  });
+});
+
+describe("inherited context", () => {
+  it("resolveProject: frontmatter beats folder", () => {
+    expect(resolveProject({ project: " Lisbon " }, "trips/2026")).toBe("Lisbon");
+  });
+  it("resolveProject: falls back to immediate folder name", () => {
+    expect(resolveProject({}, "trips/2026")).toBe("2026");
+    expect(resolveProject(undefined, "Work")).toBe("Work");
+  });
+  it("resolveProject: vault root and non-string frontmatter give null", () => {
+    expect(resolveProject(undefined, "/")).toBeNull();
+    expect(resolveProject({ project: ["a"] }, undefined)).toBeNull();
+  });
+  it("headingFor picks the nearest heading above the line", () => {
+    const hs = [{ line: 0, text: "A" }, { line: 4, text: "B" }];
+    expect(headingFor(2, hs)).toBe("A");
+    expect(headingFor(9, hs)).toBe("B");
+    expect(headingFor(0, hs)).toBeNull();
+  });
+  it("parseTasksFromFile stamps project and heading", () => {
+    const t = parseTasksFromFile("n.md", "# H\n- [ ] x", [makeListItem(1, " ")], {
+      project: "P",
+      headings: [{ line: 0, text: "H" }],
+    })[0];
+    expect(t.project).toBe("P");
+    expect(t.heading).toBe("H");
   });
 });

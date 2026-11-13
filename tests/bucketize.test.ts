@@ -3,7 +3,7 @@ import type { Task } from "../src/types";
 
 const t = (id: string, o: Partial<Task> = {}): Task => ({
   id, text: id, due: null, hasTime: false, completed: false, filePath: "a.md",
-  fileName: "a", line: 0, repeat: null, parentId: null, priority: null, tags: [], ...o,
+  fileName: "a", line: 0, repeat: null, parentId: null, priority: null, tags: [], project: null, heading: null, ...o,
 });
 const now = new Date(2026, 5, 10, 12);
 

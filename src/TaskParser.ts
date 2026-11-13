@@ -19,6 +19,36 @@ export function shouldExcludeFile(frontmatter: Record<string, unknown> | undefin
   return frontmatter?.["tasks-no-collect"] === true;
 }
 
+export interface HeadingRef {
+  line: number;
+  text: string;
+}
+
+export interface FileContext {
+  project: string | null;
+  headings: HeadingRef[];
+}
+
+const NO_CONTEXT: FileContext = { project: null, headings: [] };
+
+// Frontmatter `project:` wins; otherwise the immediate folder name ("/" = vault root = none).
+export function resolveProject(frontmatter: Record<string, unknown> | undefined, folderPath: string | undefined): string | null {
+  const fm = frontmatter?.["project"];
+  if (typeof fm === "string" && fm.trim()) return fm.trim();
+  if (!folderPath || folderPath === "/") return null;
+  return folderPath.split("/").pop() || null;
+}
+
+export function headingFor(line: number, headings: HeadingRef[]): string | null {
+  // headings arrive in document order, so the last one above `line` is the nearest
+  let found: string | null = null;
+  for (const h of headings) {
+    if (h.line >= line) break;
+    found = h.text;
+  }
+  return found;
+}
+
 // Obsidian's ListItemCache.parent is the line number of the parent list item,
 // or negative (encoding the enclosing list's start line) for a top-level item.
 function resolveParentTaskId(
@@ -41,7 +71,8 @@ function resolveParentTaskId(
 export function parseTasksFromFile(
   filePath: string,
   content: string,
-  listItems: ListItemCache[]
+  listItems: ListItemCache[],
+  ctx: FileContext = NO_CONTEXT
 ): Task[] {
   const lines = content.split("\n");
   const fileName = filePath.split("/").pop()?.replace(/\.md$/, "") ?? filePath;
@@ -100,6 +131,8 @@ export function parseTasksFromFile(
       parentId: resolveParentTaskId(item, filePath, lineToItem, taskLines),
       priority,
       tags,
+      project: ctx.project,
+      heading: headingFor(lineNumber, ctx.headings),
     });
   }
 

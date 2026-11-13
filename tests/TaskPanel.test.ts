@@ -25,6 +25,8 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     parentId: null,
     priority: null,
     tags: [],
+    project: null,
+    heading: null,
     ...overrides,
   };
 }
@@ -227,7 +229,7 @@ describe("computeRollupCompletions", () => {
 });
 
 describe("matchesFilters", () => {
-  const none = { priority: null, tags: new Set<string>() };
+  const none = { priority: null, tags: new Set<string>(), project: null };
   it("passes everything with no filters", () => {
     expect(matchesFilters(makeTask(), none)).toBe(true);
   });
@@ -235,6 +237,12 @@ describe("matchesFilters", () => {
     const f = { ...none, priority: "high" as const };
     expect(matchesFilters(makeTask({ priority: "high" }), f)).toBe(true);
     expect(matchesFilters(makeTask({ priority: "low" }), f)).toBe(false);
+    expect(matchesFilters(makeTask(), f)).toBe(false);
+  });
+  it("filters by project", () => {
+    const f = { ...none, project: "Lisbon" };
+    expect(matchesFilters(makeTask({ project: "Lisbon" }), f)).toBe(true);
+    expect(matchesFilters(makeTask({ project: "Work" }), f)).toBe(false);
     expect(matchesFilters(makeTask(), f)).toBe(false);
   });
   it("tags are any-of", () => {

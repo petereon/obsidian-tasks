@@ -30,4 +30,8 @@ export interface Task {
   priority: Priority | null;
   /** #tags found in the task text (without the leading #) */
   tags: string[];
+  /** Frontmatter `project:`, else the containing folder's name; null for root-level notes */
+  project: string | null;
+  /** Text of the nearest heading above the task, or null */
+  heading: string | null;
 }

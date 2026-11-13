@@ -8,10 +8,11 @@ import { nextOccurrence } from "../Recurrence";
 import { formatDue } from "../formatDue";
 import { GroupedView } from "./GroupedView";
 import { FlatView } from "./FlatView";
+import { HeadingView } from "./HeadingView";
 import { HistoryView } from "./HistoryView";
 import { useApp } from "./AppContext";
 
-type ViewMode = "grouped" | "flat" | "history";
+type ViewMode = "grouped" | "flat" | "headings" | "history";
 
 interface Props {
   store: TaskStore;
@@ -48,11 +49,13 @@ export function matchesSearch(task: Task, query: string): boolean {
 export interface Filters {
   priority: Priority | null;
   tags: ReadonlySet<string>;
+  project: string | null;
 }
 
 // Priority is exact-match; tags are any-of (empty set = no tag filter).
 export function matchesFilters(task: Task, filters: Filters): boolean {
   if (filters.priority && task.priority !== filters.priority) return false;
+  if (filters.project && task.project !== filters.project) return false;
   if (filters.tags.size > 0 && !task.tags.some((t) => filters.tags.has(t))) return false;
   return true;
 }
@@ -152,7 +155,7 @@ export function TaskPanel({ store, onRefresh }: Props) {
   const [mode, setMode] = useState<ViewMode>("grouped");
   const [completedTodayIds, setCompletedTodayIds] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<Filters>({ priority: null, tags: new Set() });
+  const [filters, setFilters] = useState<Filters>({ priority: null, tags: new Set(), project: null });
 
   useEffect(() => {
     return store.subscribe(() => {
@@ -246,6 +249,10 @@ export function TaskPanel({ store, onRefresh }: Props) {
   function togglePriority(p: Priority) {
     setFilters((f) => ({ ...f, priority: f.priority === p ? null : p }));
   }
+  const allProjects = Array.from(new Set(tasks.map((t) => t.project).filter((p): p is string => !!p))).sort();
+  function toggleProject(p: string) {
+    setFilters((f) => ({ ...f, project: f.project === p ? null : p }));
+  }
   function toggleTag(tag: string) {
     setFilters((f) => {
       const tags = new Set(f.tags);
@@ -282,6 +289,12 @@ export function TaskPanel({ store, onRefresh }: Props) {
             Flat
           </button>
           <button
+            className={`tasks-panel__tab${mode === "headings" ? " tasks-panel__tab--active" : ""}`}
+            onClick={() => setMode("headings")}
+          >
+            Headings
+          </button>
+          <button
             className={`tasks-panel__tab${mode === "history" ? " tasks-panel__tab--active" : ""}`}
             onClick={() => setMode("history")}
           >
@@ -311,6 +324,15 @@ export function TaskPanel({ store, onRefresh }: Props) {
             {p}
           </button>
         ))}
+        {allProjects.map((p) => (
+          <button
+            key={p}
+            className={`tasks-panel__chip${filters.project === p ? " tasks-panel__chip--active" : ""}`}
+            onClick={() => toggleProject(p)}
+          >
+            {p}
+          </button>
+        ))}
         {allTags.map((tag) => (
           <button
             key={tag}
@@ -333,6 +355,15 @@ export function TaskPanel({ store, onRefresh }: Props) {
         )}
         {mode === "flat" && (
           <FlatView
+            activeTasks={activeTasks}
+            completedTodayTasks={completedTodayTasks}
+            childrenByParent={childrenByParent}
+            onToggle={(t) => void handleToggle(t)}
+            onSkip={(t) => void handleSkip(t)}
+          />
+        )}
+        {mode === "headings" && (
+          <HeadingView
             activeTasks={activeTasks}
             completedTodayTasks={completedTodayTasks}
             childrenByParent={childrenByParent}
