@@ -701,3 +701,9 @@
 .tasks-notifier-snooze-btn:hover {
   background: var(--background-modifier-hover);
 }
+
+.tasks-empty {
+  padding: 16px 12px;
+  color: var(--text-faint);
+  font-size: 12px;
+}

@@ -9,10 +9,11 @@ import { formatDue } from "../formatDue";
 import { GroupedView } from "./GroupedView";
 import { FlatView } from "./FlatView";
 import { HeadingView } from "./HeadingView";
+import { ThisNoteView } from "./ThisNoteView";
 import { HistoryView } from "./HistoryView";
 import { useApp } from "./AppContext";
 
-type ViewMode = "grouped" | "flat" | "headings" | "history";
+type ViewMode = "grouped" | "flat" | "headings" | "note" | "history";
 
 interface Props {
   store: TaskStore;
@@ -295,6 +296,12 @@ export function TaskPanel({ store, onRefresh }: Props) {
             Headings
           </button>
           <button
+            className={`tasks-panel__tab${mode === "note" ? " tasks-panel__tab--active" : ""}`}
+            onClick={() => setMode("note")}
+          >
+            This note
+          </button>
+          <button
             className={`tasks-panel__tab${mode === "history" ? " tasks-panel__tab--active" : ""}`}
             onClick={() => setMode("history")}
           >
@@ -366,6 +373,14 @@ export function TaskPanel({ store, onRefresh }: Props) {
           <HeadingView
             activeTasks={activeTasks}
             completedTodayTasks={completedTodayTasks}
+            childrenByParent={childrenByParent}
+            onToggle={(t) => void handleToggle(t)}
+            onSkip={(t) => void handleSkip(t)}
+          />
+        )}
+        {mode === "note" && (
+          <ThisNoteView
+            activeTasks={activeTasks}
             childrenByParent={childrenByParent}
             onToggle={(t) => void handleToggle(t)}
             onSkip={(t) => void handleSkip(t)}
