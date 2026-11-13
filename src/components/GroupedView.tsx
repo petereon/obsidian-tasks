@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { Task } from "../types";
+import { priorityRank } from "../sortTasks";
 import { TaskTree } from "./TaskTree";
 
 interface Props {
@@ -87,11 +88,13 @@ export function bucketize(tasks: Task[], now: Date): {
     }
   }
 
+  // Due time first; ties (e.g. same-day date-only tasks) go to higher priority.
   const byDue = (a: Task, b: Task) =>
-    (a.due?.getTime() ?? 0) - (b.due?.getTime() ?? 0);
+    (a.due?.getTime() ?? 0) - (b.due?.getTime() ?? 0) || priorityRank(b.priority) - priorityRank(a.priority);
   overdue.sort(byDue);
   today.sort(byDue);
   upcoming.sort(byDue);
+  noDate.sort(byDue);
 
   return { overdue, today, upcoming, noDate };
 }

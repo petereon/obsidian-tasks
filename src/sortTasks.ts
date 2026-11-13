@@ -6,7 +6,7 @@ export type SortDirection = "asc" | "desc";
 
 const PRIORITY_RANK: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
-function priorityRank(priority: Priority | null): number {
+export function priorityRank(priority: Priority | null): number {
   return priority ? PRIORITY_RANK[priority] : 0;
 }
 
