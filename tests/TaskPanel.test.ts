@@ -4,7 +4,9 @@ import {
   computeRollupCompletions,
   matchesSearch,
   pruneCompletedToday,
+  subtreeMatches,
   subtreeMatchesSearch,
+  matchesFilters,
 } from "../src/components/TaskPanel";
 import type { Task } from "../src/types";
 
@@ -22,6 +24,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     repeat: null,
     parentId: null,
     priority: null,
+    tags: [],
     ...overrides,
   };
 }
@@ -220,5 +223,32 @@ describe("computeRollupCompletions", () => {
     const task = makeTask({ id: "a.md::0", parentId: null });
     const result = computeRollupCompletions(task, new Set([task.id]), new Map(), new Map());
     expect(result).toEqual([]);
+  });
+});
+
+describe("matchesFilters", () => {
+  const none = { priority: null, tags: new Set<string>() };
+  it("passes everything with no filters", () => {
+    expect(matchesFilters(makeTask(), none)).toBe(true);
+  });
+  it("filters by priority", () => {
+    const f = { ...none, priority: "high" as const };
+    expect(matchesFilters(makeTask({ priority: "high" }), f)).toBe(true);
+    expect(matchesFilters(makeTask({ priority: "low" }), f)).toBe(false);
+    expect(matchesFilters(makeTask(), f)).toBe(false);
+  });
+  it("tags are any-of", () => {
+    const f = { ...none, tags: new Set(["a", "b"]) };
+    expect(matchesFilters(makeTask({ tags: ["b"] }), f)).toBe(true);
+    expect(matchesFilters(makeTask({ tags: ["c"] }), f)).toBe(false);
+  });
+});
+
+describe("subtreeMatches", () => {
+  it("surfaces a parent when only a child matches", () => {
+    const parent = makeTask({ id: "p" });
+    const child = makeTask({ id: "c", parentId: "p", priority: "high" });
+    const idx = buildChildrenIndex([child]);
+    expect(subtreeMatches(parent, (t) => t.priority === "high", idx)).toBe(true);
   });
 });

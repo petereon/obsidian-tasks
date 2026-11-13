@@ -28,4 +28,6 @@ export interface Task {
   parentId: string | null;
   /** Set when [priority:: high|medium|low] annotation is present in task text */
   priority: Priority | null;
+  /** #tags found in the task text (without the leading #) */
+  tags: string[];
 }

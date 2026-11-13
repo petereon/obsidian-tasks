@@ -15,6 +15,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     repeat: null,
     parentId: null,
     priority: null,
+    tags: [],
     ...overrides,
   };
 }

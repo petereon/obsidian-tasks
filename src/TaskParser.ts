@@ -6,6 +6,7 @@ import { parsePriority, PRIORITY_REGEX } from "./priority";
 
 const DONE_REGEX = /\[done::\s*(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2})\]/;
 const NO_COLLECT_REGEX = /\[tasks-no-collect::\s*(true|false)\s*\]/;
+const TAG_REGEX = /(?:^|\s)#([\w/-]*[A-Za-z_/-][\w/-]*)/g;
 const WIKILINK_REGEX = /\[\[([^\]]+)\]\]/g;
 const MARKDOWN_LINK_REGEX = /\[([^\]]+)\]\([^)]+\)/g;
 
@@ -73,6 +74,7 @@ export function parseTasksFromFile(
     const completedAt = parseDone(rawText);
     const repeat = parseRepeatRule(rawText);
     const priority = parsePriority(rawText);
+    const tags = (rawText.match(TAG_REGEX) ?? []).map((m) => m.trim().slice(1));
     const text = rawText
       .replace(DUE_REGEX, "")
       .replace(DONE_REGEX, "")
@@ -97,6 +99,7 @@ export function parseTasksFromFile(
       repeat,
       parentId: resolveParentTaskId(item, filePath, lineToItem, taskLines),
       priority,
+      tags,
     });
   }
 

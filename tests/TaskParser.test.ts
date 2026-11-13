@@ -337,3 +337,18 @@ describe("shouldExcludeFile", () => {
     expect(shouldExcludeFile({ "tasks-no-collect": false })).toBe(false);
   });
 });
+
+describe("tags", () => {
+  const parse = (c: string) => parseTasksFromFile("n.md", c, [makeListItem(0, " ")])[0];
+  it("extracts #tags, keeps text", () => {
+    const t = parse("- [ ] Call #work #home/pets now");
+    expect(t.tags).toEqual(["work", "home/pets"]);
+    expect(t.text).toBe("Call #work #home/pets now");
+  });
+  it("ignores pure-number #1 and mid-word #", () => {
+    expect(parse("- [ ] item #1 a#b").tags).toEqual([]);
+  });
+  it("has empty tags by default", () => {
+    expect(parse("- [ ] plain").tags).toEqual([]);
+  });
+});

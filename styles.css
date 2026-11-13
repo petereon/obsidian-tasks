@@ -112,6 +112,31 @@
   text-align: center;
 }
 
+/* Filter chips */
+.tasks-panel__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 12px 6px;
+  flex-shrink: 0;
+}
+
+.tasks-panel__chip {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+}
+
+.tasks-panel__chip--active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
 /* Search */
 .tasks-panel__search {
   padding: 6px 12px;

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Notice, TFile } from "obsidian";
 import type { Task } from "../types";
+import type { Priority } from "../priority";
 import type { TaskStore } from "../TaskStore";
 import { advanceRecurringTask, toggleTask, toggleTaskCascade } from "../TaskToggler";
 import { nextOccurrence } from "../Recurrence";
@@ -44,6 +45,18 @@ export function matchesSearch(task: Task, query: string): boolean {
   );
 }
 
+export interface Filters {
+  priority: Priority | null;
+  tags: ReadonlySet<string>;
+}
+
+// Priority is exact-match; tags are any-of (empty set = no tag filter).
+export function matchesFilters(task: Task, filters: Filters): boolean {
+  if (filters.priority && task.priority !== filters.priority) return false;
+  if (filters.tags.size > 0 && !task.tags.some((t) => filters.tags.has(t))) return false;
+  return true;
+}
+
 // A subtask nested under a matching ancestor should stay visible even if it
 // doesn't itself match — and a match buried in a subtask should surface its
 // whole ancestor chain — so search matches against the whole subtree at once.
@@ -55,6 +68,15 @@ export function subtreeMatchesSearch(
   if (matchesSearch(task, query)) return true;
   const children = childrenByParent.get(task.id) ?? [];
   return children.some((c) => subtreeMatchesSearch(c, query, childrenByParent));
+}
+
+export function subtreeMatches(
+  task: Task,
+  pred: (t: Task) => boolean,
+  childrenByParent: Map<string, Task[]>
+): boolean {
+  if (pred(task)) return true;
+  return (childrenByParent.get(task.id) ?? []).some((c) => subtreeMatches(c, pred, childrenByParent));
 }
 
 export function buildChildrenIndex(tasks: Task[]): Map<string, Task[]> {
@@ -130,6 +152,7 @@ export function TaskPanel({ store, onRefresh }: Props) {
   const [mode, setMode] = useState<ViewMode>("grouped");
   const [completedTodayIds, setCompletedTodayIds] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState<Filters>({ priority: null, tags: new Set() });
 
   useEffect(() => {
     return store.subscribe(() => {
@@ -215,7 +238,21 @@ export function TaskPanel({ store, onRefresh }: Props) {
   }
 
   const topLevelTasks = tasks.filter((t) => t.parentId === null);
-  const visibleTopLevel = topLevelTasks.filter((t) => subtreeMatchesSearch(t, query, childrenByParent));
+  const visibleTopLevel = topLevelTasks.filter((t) =>
+    subtreeMatches(t, (x) => matchesSearch(x, query) && matchesFilters(x, filters), childrenByParent)
+  );
+  const allTags = Array.from(new Set(([] as string[]).concat(...tasks.map((t) => t.tags)))).sort();
+
+  function togglePriority(p: Priority) {
+    setFilters((f) => ({ ...f, priority: f.priority === p ? null : p }));
+  }
+  function toggleTag(tag: string) {
+    setFilters((f) => {
+      const tags = new Set(f.tags);
+      tags.has(tag) ? tags.delete(tag) : tags.add(tag);
+      return { ...f, tags };
+    });
+  }
 
   // Active = not yet completed in file AND not optimistically completed
   const activeTasks = visibleTopLevel.filter(
@@ -263,6 +300,26 @@ export function TaskPanel({ store, onRefresh }: Props) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+      </div>
+      <div className="tasks-panel__filters">
+        {(["high", "medium", "low"] as const).map((p) => (
+          <button
+            key={p}
+            className={`tasks-panel__chip${filters.priority === p ? " tasks-panel__chip--active" : ""}`}
+            onClick={() => togglePriority(p)}
+          >
+            {p}
+          </button>
+        ))}
+        {allTags.map((tag) => (
+          <button
+            key={tag}
+            className={`tasks-panel__chip${filters.tags.has(tag) ? " tasks-panel__chip--active" : ""}`}
+            onClick={() => toggleTag(tag)}
+          >
+            #{tag}
+          </button>
+        ))}
       </div>
       <div className="tasks-panel__body">
         {mode === "grouped" && (
